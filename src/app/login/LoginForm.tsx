@@ -1,10 +1,10 @@
 'use client'
 import { FormEvent, useState, useRef } from 'react'
 import { toast } from 'react-toastify'
+import { useRouter } from 'next/navigation'
+import axiosClient from '@/utils/axiosClient'
 
-const toastCustomProps = {
-  autoClose: 1500
-}
+const toastCustomProps = { autoClose: 1500 }
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
@@ -12,6 +12,7 @@ export default function LoginForm() {
   const [emailError, setEmailError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const emailRef = useRef<HTMLInputElement>(null)
+  const router = useRouter()
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -23,8 +24,6 @@ export default function LoginForm() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-
-    // validación previa
     const emailErr = validateEmail(email)
     if (emailErr) {
       setEmailError(emailErr)
@@ -32,23 +31,27 @@ export default function LoginForm() {
       return
     }
     setEmailError('')
-
     setIsLoading(true)
+
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
-      if (!res.ok) {
-        const { error } = await res.json()
-        toast.error(error ?? 'Credenciales inválidas', toastCustomProps)
-        setIsLoading(false)
-        return
+      await axiosClient.post('/api/login', { email, password })
+      router.replace('/dashboard')
+    } catch (err: any) {
+      if (err.response) {
+        const status = err.response.status
+        if (status === 400 || status === 401) {
+          toast.error('Credenciales incorrectas', toastCustomProps)
+        } else if (status >= 500) {
+          toast.error('Error del servidor, inténtalo más tarde', toastCustomProps)
+        } else {
+          toast.error('Error desconocido', toastCustomProps)
+        }
+      } else if (err.request) {
+        toast.error('Error de red, verifica tu conexión', toastCustomProps)
+      } else {
+        toast.error('Ha ocurrido un error', toastCustomProps)
       }
-      window.location.href = '/dashboard'
-    } catch (err) {
-      toast.error('Error de red, inténtalo de nuevo', toastCustomProps)
+
       setIsLoading(false)
     }
   }
@@ -56,8 +59,6 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="p-6 border rounded-md w-full max-w-sm">
       <h1 className="text-2xl mb-4">Iniciar sesión</h1>
-
-      {/* Email */}
       <label className="block mb-2">
         Email
         <input
@@ -75,7 +76,6 @@ export default function LoginForm() {
       </label>
       {emailError && <p className="text-red-500 mb-2 text-sm">{emailError}</p>}
 
-      {/* Contraseña */}
       <label className="block mb-4">
         Contraseña
         <input
@@ -87,7 +87,6 @@ export default function LoginForm() {
         />
       </label>
 
-      {/* Botón con animación */}
       <button
         type="submit"
         disabled={isLoading}

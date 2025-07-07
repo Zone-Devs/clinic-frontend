@@ -5,10 +5,9 @@ import NavbarClient from '@/app/components/NavbarClient'
 
 interface Props {
   children: ReactNode
-  user: { id: string; email: string } | null
 }
 
-export default function ClientRootLayout({ children, user }: Props) {
+export default function ClientRootLayout({ children }: Props) {
   const [open, setOpen] = useState(false)
   const [isDesktop, setIsDesktop] = useState(false)
 
@@ -26,8 +25,6 @@ export default function ClientRootLayout({ children, user }: Props) {
     return () => mql.removeEventListener('change', onChange)
   }, [])
 
-  if (!user) return <>{children}</>
-
   // onClose solo cierra en mobile
   const handleClose = () => {
     if (!isDesktop) setOpen(false)
@@ -38,7 +35,7 @@ export default function ClientRootLayout({ children, user }: Props) {
       <Sidebar open={open} onClose={handleClose} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <NavbarClient onMenuToggle={() => setOpen(o => !o)} user={user} />
+        <NavbarClient onMenuToggle={() => setOpen(o => !o)} />
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>

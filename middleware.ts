@@ -1,24 +1,26 @@
-
+// middleware.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { verifyToken } from './src/utils/auth'
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
+  // Solo protegemos /dashboard
   if (!pathname.startsWith('/dashboard')) {
     return NextResponse.next()
   }
 
+  // Comprobamos solo que exista la cookie
   const token = req.cookies.get('token')?.value
-  const user = token ? verifyToken(token) : null
 
-  if (!user) {
+  if (!token) {
+    // Sin token → login
     const url = req.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
+  // Si hay token, dejamos pasar
   return NextResponse.next()
 }
 

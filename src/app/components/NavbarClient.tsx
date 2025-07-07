@@ -4,10 +4,9 @@ import { FiMenu, FiLogOut } from 'react-icons/fi'
 
 interface Props {
   onMenuToggle?: () => void
-  user: { id: string; email: string }
 }
 
-export default function NavbarClient({ onMenuToggle, user }: Props) {
+export default function NavbarClient({ onMenuToggle }: Props) {
   return (
     <nav className="flex items-center justify-between px-6 py-3 shadow">
       <button
@@ -16,7 +15,6 @@ export default function NavbarClient({ onMenuToggle, user }: Props) {
       >
         <FiMenu size={24} />
       </button>
-      <div className="hidden md:block">Hola, {user.email}</div>
       <form action="/api/logout" method="post">
         <button
           type="submit"
