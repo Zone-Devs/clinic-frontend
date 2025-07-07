@@ -1,30 +1,30 @@
 'use client'
 import { FormEvent, useState, useRef } from 'react'
+import { toast } from 'react-toastify'
+
+const toastCustomProps = {
+  autoClose: 1500
+}
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
   const [emailError, setEmailError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const emailRef = useRef<HTMLInputElement>(null)
 
-  // Regex básica para email
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
   function validateEmail(value: string) {
-    if (!value) {
-      return 'El email es obligatorio'
-    }
-    if (!emailPattern.test(value)) {
-      return 'Formato de email no válido'
-    }
+    if (!value) return 'El email es obligatorio'
+    if (!emailPattern.test(value)) return 'Formato de email no válido'
     return ''
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    setError('')
 
+    // validación previa
     const emailErr = validateEmail(email)
     if (emailErr) {
       setEmailError(emailErr)
@@ -33,17 +33,24 @@ export default function LoginForm() {
     }
     setEmailError('')
 
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-
-    if (res.ok) {
+    setIsLoading(true)
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      if (!res.ok) {
+        const { error } = await res.json()
+        toast.error(error ?? 'Credenciales inválidas', toastCustomProps)
+        setIsLoading(false)
+        return
+      }
+      // redirección completa para re-renderizar el layout con Navbar
       window.location.href = '/dashboard'
-    } else {
-      const { error } = await res.json()
-      setError(error)
+    } catch (err) {
+      toast.error('Error de red, inténtalo de nuevo', toastCustomProps)
+      setIsLoading(false)
     }
   }
 
@@ -61,9 +68,7 @@ export default function LoginForm() {
           value={email}
           onChange={e => {
             setEmail(e.target.value)
-            if (emailError) {
-              setEmailError(validateEmail(e.target.value))
-            }
+            if (emailError) setEmailError(validateEmail(e.target.value))
           }}
           className={`block w-full border p-1 ${emailError ? 'border-red-500' : ''}`}
           placeholder="usuario@ejemplo.com"
@@ -83,14 +88,14 @@ export default function LoginForm() {
         />
       </label>
 
-      {/* Error global */}
-      {error && <p className="text-red-500 mb-2">{error}</p>}
-
+      {/* Botón con animación */}
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+        disabled={isLoading}
+        className={`w-full relative bg-blue-600 text-white p-2 rounded hover:bg-blue-700
+          ${isLoading ? 'btn-progress' : ''}`}
       >
-        Entrar
+        {isLoading ? '' : 'Entrar'}
       </button>
     </form>
   )

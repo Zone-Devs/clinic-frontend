@@ -1,3 +1,5 @@
+import 'react-toastify/dist/ReactToastify.css'
+import { ToastContainer } from 'react-toastify'
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -18,6 +20,7 @@ export default async function RootLayout({
         {/* Ahora Next renderiza Navbar en el servidor */}
         <Navbar />
         <main>{children}</main>
+        <ToastContainer position="top-center" />
       </body>
     </html>
   );
