@@ -46,7 +46,6 @@ export default function LoginForm() {
         setIsLoading(false)
         return
       }
-      // redirección completa para re-renderizar el layout con Navbar
       window.location.href = '/dashboard'
     } catch (err) {
       toast.error('Error de red, inténtalo de nuevo', toastCustomProps)
