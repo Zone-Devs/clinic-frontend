@@ -34,7 +34,8 @@ export default function LoginForm() {
     setIsLoading(true)
 
     try {
-      await axiosClient.post('/api/login', { email, password })
+      const xdd = await axiosClient.post('/api/login', { email, password })
+      console.log('🚬 ===> :39 ===> handleSubmit ===> xdd:', xdd);
       router.replace('/dashboard')
     } catch (err: any) {
       if (err.response) {

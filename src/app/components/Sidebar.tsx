@@ -25,6 +25,9 @@ export default function Sidebar({ open, onClose }: Props) {
         <Link href="/dashboard" onClick={onClose} className="block font-medium hover:underline">
           Dashboard
         </Link>
+        <Link href="/roles" onClick={onClose} className="block font-medium hover:underline">
+          Roles y permisos
+        </Link>
         {/* ...otros enlaces con onClick={onClose} */}
       </nav>
     </aside>

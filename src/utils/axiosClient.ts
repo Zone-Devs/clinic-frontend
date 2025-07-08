@@ -9,6 +9,8 @@ const client = axios.create({
 
 client.interceptors.request.use(config => {
   const match = document.cookie.match(/(?:^|; )token=([^;]+)/)
+  console.log('🚬 ===> :12 ===> document.cookie:', document.cookie);
+  console.log('🚬 ===> :12 ===> match:', match);
   const token = match?.[1]
 
   if (token) {
