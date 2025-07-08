@@ -1,101 +1,123 @@
 'use client'
-import { FormEvent, useState, useRef } from 'react'
-import { toast } from 'react-toastify'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import { useRouter } from 'next/navigation'
+import { toast } from 'react-toastify'
 import axiosClient from '@/utils/axiosClient'
 
-const toastCustomProps = { autoClose: 1500 }
+// shadcn/ui components
+import { 
+  Form, FormField, FormItem, FormLabel, FormControl, FormMessage 
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
+
+// 1) Esquema de validación
+const loginSchema = z.object({
+  email: z.string().email({ message: 'Email no válido' }),
+  password: z.string().min(6, { message: 'Mínimo 6 caracteres' }),
+  remember: z.boolean().optional(),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [emailError, setEmailError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const emailRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
 
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '', remember: false },
+  })
 
-  function validateEmail(value: string) {
-    if (!value) return 'El email es obligatorio'
-    if (!emailPattern.test(value)) return 'Formato de email no válido'
-    return ''
-  }
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    const emailErr = validateEmail(email)
-    if (emailErr) {
-      setEmailError(emailErr)
-      emailRef.current?.focus()
-      return
-    }
-    setEmailError('')
-    setIsLoading(true)
-
+  async function onSubmit(values: LoginFormValues) {
     try {
-      const xdd = await axiosClient.post('/api/login', { email, password })
-      console.log('🚬 ===> :39 ===> handleSubmit ===> xdd:', xdd);
+      await axiosClient.post('/api/login', {
+        email: values.email,
+        password: values.password,
+      })
       router.replace('/dashboard')
     } catch (err: any) {
-      if (err.response) {
-        const status = err.response.status
-        if (status === 400 || status === 401) {
-          toast.error('Credenciales incorrectas', toastCustomProps)
-        } else if (status >= 500) {
-          toast.error('Error del servidor, inténtalo más tarde', toastCustomProps)
-        } else {
-          toast.error('Error desconocido', toastCustomProps)
-        }
-      } else if (err.request) {
-        toast.error('Error de red, verifica tu conexión', toastCustomProps)
-      } else {
-        toast.error('Ha ocurrido un error', toastCustomProps)
-      }
-
-      setIsLoading(false)
+      if (err.response?.status === 401)
+        toast.error('Credenciales incorrectas')
+      else
+        toast.error('Error al iniciar sesión')
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 border rounded-md w-full max-w-sm">
-      <h1 className="text-2xl mb-4">Iniciar sesión</h1>
-      <label className="block mb-2">
-        Email
-        <input
-          ref={emailRef}
-          type="email"
-          required
-          value={email}
-          onChange={e => {
-            setEmail(e.target.value)
-            if (emailError) setEmailError(validateEmail(e.target.value))
-          }}
-          className={`block w-full border p-1 ${emailError ? 'border-red-500' : ''}`}
-          placeholder="usuario@ejemplo.com"
-        />
-      </label>
-      {emailError && <p className="text-red-500 mb-2 text-sm">{emailError}</p>}
+    <div className="min-h-screen flex items-center justify-center bg-bg px-4">
+      <div className="w-full max-w-md bg-surface p-8 rounded-xl shadow-lg">
+        <h2 className="text-center text-3xl font-bold text-primary mb-6">
+          Bienvenido
+        </h2>
 
-      <label className="block mb-4">
-        Contraseña
-        <input
-          type="password"
-          required
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          className="block w-full border p-1"
-        />
-      </label>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            {/* Email */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" size={16} />
+                      <Input
+                        {...field}
+                        type="email"
+                        placeholder="usuario@ejemplo.com"
+                        className="pl-10"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-      <button
-        type="submit"
-        disabled={isLoading}
-        className={`w-full relative bg-blue-600 text-white p-2 rounded hover:bg-blue-700
-          ${isLoading ? 'btn-progress' : ''}`}
-      >
-        {isLoading ? '' : 'Entrar'}
-      </button>
-    </form>
+            {/* Password */}
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contraseña</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" size={16} />
+                      <Input
+                        {...field}
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        className="pl-10 pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light"
+                      >
+                        {showPassword ? <EyeOff size={16}/> : <Eye size={16}/>}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Submit */}
+            <Button type="submit" className="w-full" isLoading={form.formState.isSubmitting}>
+              Entrar
+            </Button>
+          </form>
+        </Form>
+      </div>
+    </div>
   )
 }

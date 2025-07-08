@@ -1,8 +1,23 @@
 'use client'
+
 import { useState, useEffect, useMemo } from 'react'
 import debounce from 'lodash.debounce'
 import axiosClient from '@/utils/axiosClient'
-import { FiSearch, FiX } from 'react-icons/fi'
+import { FiSearch } from 'react-icons/fi'
+
+// shadcn/ui
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 interface Permission {
   code: string
@@ -36,9 +51,8 @@ export default function RolesTable() {
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>()
-  
+
   // Modal
-  const [modalOpen, setModalOpen] = useState(false)
   const [currentRole, setCurrentRole] = useState<Role | null>(null)
 
   // Debounce fetch
@@ -65,125 +79,118 @@ export default function RolesTable() {
 
   useEffect(() => {
     debouncedFetch(search, page)
-    return () => { debouncedFetch.cancel() }
+    return () => {
+      debouncedFetch.cancel()
+    }
   }, [search, page, debouncedFetch])
 
-  function openModal(role: Role) {
-    setCurrentRole(role)
-    setModalOpen(true)
-  }
-
-  function closeModal() {
-    setModalOpen(false)
-    setCurrentRole(null)
-  }
-
   return (
-    <div>
+    <div className="space-y-6">
       {/* Buscador */}
-      <div className="mb-4 flex items-center space-x-2">
-        <FiSearch />
-        <input
-          type="text"
+      <div className="flex items-center space-x-2">
+        <FiSearch className="text-muted-foreground" />
+        <Input
           placeholder="Buscar por nombre…"
           value={search}
           onChange={e => {
             setSearch(e.target.value)
             setPage(1)
           }}
-          className="border p-2 rounded flex-1"
+          className="max-w-sm"
         />
       </div>
 
       {/* Tabla */}
-      <div className="overflow-auto border rounded">
-        <table className="w-full table-auto">
-          <thead>
-            <tr>
-              <th className="p-2 text-left">ID</th>
-              <th className="p-2 text-left">Nombre</th>
-              <th className="p-2 text-left">Descripción</th>
-              <th className="p-2 text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
+      <ScrollArea className="border rounded">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Nombre</TableHead>
+              <TableHead>Descripción</TableHead>
+              <TableHead className="text-center">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loading ? (
-              <tr><td colSpan={4} className="p-4 text-center">Cargando…</td></tr>
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-4">
+                  Cargando…
+                </TableCell>
+              </TableRow>
             ) : error ? (
-              <tr><td colSpan={4} className="p-4 text-center text-red-500">{error}</td></tr>
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-4 text-destructive">
+                  {error}
+                </TableCell>
+              </TableRow>
             ) : roles.length === 0 ? (
-              <tr><td colSpan={4} className="p-4 text-center">No se encontraron roles.</td></tr>
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-4">
+                  No se encontraron roles.
+                </TableCell>
+              </TableRow>
             ) : (
               roles.map(role => (
-                <tr key={role.id} className="border-t">
-                  <td className="p-2">{role.id}</td>
-                  <td className="p-2">{role.name}</td>
-                  <td className="p-2">{role.description ?? '—'}</td>
-                  <td className="p-2 text-center">
-                    <button
-                      onClick={() => openModal(role)}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Ver permisos
-                    </button>
-                  </td>
-                </tr>
+                <TableRow key={role.id}>
+                  <TableCell>{role.id}</TableCell>
+                  <TableCell>{role.name}</TableCell>
+                  <TableCell>{role.description ?? '—'}</TableCell>
+                  <TableCell className="text-center">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="link" size="sm">
+                          Ver permisos
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>
+                            Permisos de {role.name}
+                          </DialogTitle>
+                        </DialogHeader>
+                        <ScrollArea className="mt-4 max-h-64 space-y-4">
+                          {role.permissionsGroups.map(group => (
+                            <div key={group.group}>
+                              <h3 className="font-medium">{group.group}</h3>
+                              <ul className="ml-4 list-disc space-y-1">
+                                {group.permissions.map(perm => (
+                                  <li key={perm.code}>{perm.name}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </ScrollArea>
+                      </DialogContent>
+                    </Dialog>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </ScrollArea>
 
       {/* Paginación */}
-      <div className="mt-4 flex items-center justify-center space-x-2">
-        <button
+      <div className="flex items-center justify-center space-x-4">
+        <Button
           onClick={() => setPage(p => Math.max(p - 1, 1))}
           disabled={page <= 1}
-          className="px-3 py-1 border rounded disabled:opacity-50"
+          variant="outline"
         >
           Anterior
-        </button>
-        <span>Página {page} de {totalPages}</span>
-        <button
+        </Button>
+        <span>
+          Página {page} de {totalPages}
+        </span>
+        <Button
           onClick={() => setPage(p => Math.min(p + 1, totalPages))}
           disabled={page >= totalPages}
-          className="px-3 py-1 border rounded disabled:opacity-50"
+          variant="outline"
         >
           Siguiente
-        </button>
+        </Button>
       </div>
-
-      {/* Modal de permisos */}
-      {modalOpen && currentRole && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="rounded bg-white bg-opacity-90 shadow-lg max-w-xl w-full p-6 relative">
-            {/* Cerrar */}
-            <button
-              onClick={closeModal}
-              className="absolute top-4 right-4 "
-            >
-              <FiX size={20} />
-            </button>
-
-            <h2 className="text-xl font-semibold mb-4">
-              Permisos de <span className="capitalize">{currentRole.name}</span>
-            </h2>
-
-            <div className="space-y-4 max-h-96 overflow-auto">
-              {currentRole.permissionsGroups.map(group => (
-                <div key={group.group}>
-                  <h3 className="font-medium">{group.group}</h3>
-                  <ul className="ml-4 list-disc">
-                    {group.permissions.map(perm => (
-                      <li key={perm.code}>{perm.name}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
