@@ -1,29 +1,82 @@
-// src/app/components/NavbarClient.tsx
 'use client'
-import { FiMenu, FiLogOut } from 'react-icons/fi'
+
+import Link from 'next/link'
+import { FiMenu, FiX, FiLogOut } from 'react-icons/fi'
+import { Button } from '@/components/ui/button'
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetClose,
+} from '@/components/ui/sheet'
+import SidebarContent from '@/app/components/SidebarContent'
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
 
 interface Props {
   onMenuToggle?: () => void
+  user: {
+    id: string
+    email?: string
+    avatarUrl?: string
+  }
 }
 
-export default function NavbarClient({ onMenuToggle }: Props) {
+export default function NavbarClient({ onMenuToggle, user }: Props) {
   return (
-    <nav className="flex items-center justify-between px-6 py-3 shadow">
-      <button
-        onClick={onMenuToggle}
-        className="flex items-center text-gray-700 hover:text-gray-900 md:hidden"
-      >
-        <FiMenu size={24} />
-      </button>
-      <form action="/api/logout" method="post">
-        <button
-          type="submit"
-          className="flex items-center border border-red-500 text-red-500 px-2 rounded hover:bg-red-50"
-        >
-          <FiLogOut size={18} />
-          <span className="ml-2 pt-2 pb-1 text-sm">Logout</span>
-        </button>
-      </form>
-    </nav>
+    <header className="flex items-center justify-between px-6 py-3 border-b bg-white">
+
+      {/* Título en desktop */}
+      <h1 className="hidden md:block text-lg font-semibold text-gray-800">
+        Sistema de Veterinarias
+      </h1>
+      <div className="flex-1" />
+
+      {/* Área de usuario */}
+      <div className="flex items-right space-x-4">
+
+        {/* Avatar + Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Avatar className="cursor-pointer">
+              {user?.avatarUrl ? (
+                <AvatarImage src={user.avatarUrl} alt={user.email} />
+              ) : (
+                <AvatarFallback>
+                  {user?.email?.[0].toUpperCase()}
+                </AvatarFallback>
+              )}
+            </Avatar>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem asChild>
+              <Link href="/profile" className="flex items-center gap-2 px-2 py-1">
+                Perfil
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <form action="/api/logout" method="post" className="w-full">
+                <Button variant="ghost" size="sm" className="w-full justify-start">
+                  <FiLogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </form>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
   )
 }

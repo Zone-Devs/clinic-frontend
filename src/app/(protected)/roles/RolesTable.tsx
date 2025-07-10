@@ -9,6 +9,7 @@ import { FiSearch } from 'react-icons/fi'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Table,
@@ -61,21 +62,30 @@ export default function RolesTable() {
       debounce(async (q: string, p: number) => {
         setLoading(true)
         setError(undefined)
+
         try {
           const res = await axiosClient.get<ApiResponse>(
             `/api/roles?search=${encodeURIComponent(q)}&page=${p}`
           )
+          // Si el backend devolvió un 404, axios entrará en el catch.
           setRoles(res.data.data)
           setTotalPages(res.data.totalPages)
-        } catch (err) {
-          console.error(err)
-          setError('No se pudieron cargar los roles.')
+
+        } catch (err: any) {
+          // Si fue un 404: interpretamos “no hay resultados”
+          if (err.response?.status === 404) {
+            setRoles([])
+            setTotalPages(0)
+          } else {
+            setError('Error interno en el servidor. Intente más tarde.')
+          }
         } finally {
           setLoading(false)
         }
       }, 500),
     []
   )
+
 
   useEffect(() => {
     debouncedFetch(search, page)
@@ -84,6 +94,14 @@ export default function RolesTable() {
     }
   }, [search, page, debouncedFetch])
 
+  const colorMap: Record<string, string> = {
+    register: 'bg-green-100 text-green-800',
+    list: 'bg-blue-100 text-blue-800',
+    edit: 'bg-yellow-100 text-yellow-800',
+    delete: 'bg-red-100 text-red-800',
+    show: 'bg-purple-100 text-purple-800',
+    default: 'bg-orange-100 text-gray-800',
+  }
   return (
     <div className="space-y-6">
       {/* Buscador */}
@@ -101,18 +119,18 @@ export default function RolesTable() {
       </div>
 
       {/* Tabla */}
-      <ScrollArea className="border rounded">
-        <Table>
-          <TableHeader>
+        <div className="overflow-x-auto">
+        <Table className="min-w-[600px]">
+          <TableHeader className="bg-primary">
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Descripción</TableHead>
-              <TableHead className="text-center">Acciones</TableHead>
+              <TableHead className="text-primary-foreground">Nombre</TableHead>
+              <TableHead className="text-primary-foreground">Descripción</TableHead>
+              <TableHead className="text-primary-foreground text-center">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
+            {/* … loading, error, rows … */}
+                        {loading ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-4">
                   Cargando…
@@ -131,45 +149,58 @@ export default function RolesTable() {
                 </TableCell>
               </TableRow>
             ) : (
-              roles.map(role => (
-                <TableRow key={role.id}>
-                  <TableCell>{role.id}</TableCell>
-                  <TableCell>{role.name}</TableCell>
-                  <TableCell>{role.description ?? '—'}</TableCell>
-                  <TableCell className="text-center">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="link" size="sm">
-                          Ver permisos
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>
-                            Permisos de {role.name}
-                          </DialogTitle>
-                        </DialogHeader>
-                        <ScrollArea className="mt-4 max-h-64 space-y-4">
-                          {role.permissionsGroups.map(group => (
-                            <div key={group.group}>
-                              <h3 className="font-medium">{group.group}</h3>
-                              <ul className="ml-4 list-disc space-y-1">
-                                {group.permissions.map(perm => (
-                                  <li key={perm.code}>{perm.name}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          ))}
-                        </ScrollArea>
-                      </DialogContent>
-                    </Dialog>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
+            roles.map(role => (
+              <TableRow key={role.id}>
+                <TableCell>{role.name}</TableCell>
+                <TableCell>{role.description ?? '—'}</TableCell>
+                <TableCell className="text-center">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="link" size="sm">Ver permisos</Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle>Permisos de {role.name}</DialogTitle>
+                      </DialogHeader>
+
+                      <ScrollArea className="mt-4 h-[60vh] space-y-6">
+                        <Table>
+                          <TableHeader className="bg-muted">
+                            <TableRow>
+                              <TableHead>Grupo</TableHead>
+                              <TableHead>Permisos</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {role.permissionsGroups.map(group => (
+                              <TableRow key={group.group}>
+                                <TableCell className="font-medium">{group.group}</TableCell>
+                                <TableCell>
+                                  <div className="flex flex-wrap gap-2">
+                                    {group.permissions.map(perm => {
+                                      const codePreffix = perm.code.split('_')[0];
+                                      const classes = colorMap[codePreffix] ?? colorMap.default;
+                                      return (
+                                        <Badge key={perm.code} className={`${classes} text-xs`}>
+                                          {perm.name}
+                                        </Badge>
+                                      )
+                                    })}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </ScrollArea>
+                    </DialogContent>
+                  </Dialog>
+                </TableCell>
+              </TableRow>
+            )))}
           </TableBody>
         </Table>
-      </ScrollArea>
+        </div>
 
       {/* Paginación */}
       <div className="flex items-center justify-center space-x-4">
