@@ -35,6 +35,7 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card'
+import { CreateRoleDialog } from '@/app/components/CreateRoleDialog'
 
 
 interface Permission {
@@ -89,6 +90,8 @@ export default function RolesTable() {
     }
   }, 500), [])
 
+  const refrescar = () => debouncedFetch('', 1)
+
   useEffect(() => {
     debouncedFetch(search, page)
     return () => { debouncedFetch.cancel() }
@@ -106,14 +109,21 @@ export default function RolesTable() {
   return (
     <div className="space-y-6">
       {/* Buscador */}
-      <div className="flex items-center space-x-2">
-        <FiSearch className="text-muted-foreground" />
-        <Input
-          placeholder="Buscar por nombre…"
-          value={search}
-          onChange={e => { setSearch(e.target.value); setPage(1) }}
-          className="max-w-sm"
-        />
+      {/* <div className="flex items-center space-x-2"> */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 space-y-2 sm:space-y-0">
+        {/* Grupo de búsqueda */}
+        <div className="flex items-center space-x-2 w-full sm:w-md">
+          <FiSearch className="text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nombre…"
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(1) }}
+            className="w-full"
+          />
+        </div>
+
+        {/* Botón “Nuevo rol” */}
+        <CreateRoleDialog onCreated={refrescar} />
       </div>
 
       {/* ─── CARDS EN MÓVIL ─── */}
@@ -133,7 +143,7 @@ export default function RolesTable() {
                         <DialogTrigger asChild>
                           <Button variant="link" size="sm">Permisos</Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-lg">
+                        <DialogContent className="w-full max-w-[90vw] sm:max-w-[80vw] md:max-w-lg lg:max-w-xl max-h-[70vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>Permisos de {role.name}</DialogTitle>
                             <DialogClose className="absolute right-4 top-4" />
@@ -209,7 +219,7 @@ export default function RolesTable() {
                             <DialogTrigger asChild>
                               <Button variant="link" size="sm">Ver permisos</Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-lg">
+                            <DialogContent className="w-full max-w-[90vw] sm:max-w-[80vw] md:max-w-lg lg:max-w-xl max-h-[80vh] overflow-y-auto">
                               <DialogHeader>
                                 <DialogTitle>Permisos de {role.name}</DialogTitle>
                                 <DialogClose className="absolute right-4 top-4" />
