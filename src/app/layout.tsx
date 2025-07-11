@@ -17,7 +17,10 @@ export default function RootLayout({
     <html lang="es">
       <body>
         {children}
-        <ToastContainer position="top-center" />
+        <ToastContainer
+          position="top-center"
+          autoClose={2500}
+        />
       </body>
     </html>
   )

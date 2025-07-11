@@ -11,6 +11,8 @@ interface ApiResponse {
   totalPages: number
 }
 
+const serverErrorMsg = 'Error interno en el servidor. Intente más tarde';
+
 // ─── GET existente ───
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -38,7 +40,7 @@ export async function GET(req: NextRequest) {
 
   } catch (err) {
     console.error('Error proxy /api/roles GET:', err)
-    return NextResponse.json({ message: 'Error interno' }, { status: 500 })
+    return NextResponse.json({ message: serverErrorMsg }, { status: 500 })
   }
 }
 
@@ -52,7 +54,6 @@ export async function POST(req: NextRequest) {
   let body: { name: string; description: string; permissionCodes: string[] }
   try {
     body = await req.json()
-    console.log('🚬 ===> POST ===> body:', body);
   } catch {
     return NextResponse.json({ message: 'JSON inválido' }, { status: 400 })
   }
@@ -74,15 +75,29 @@ export async function POST(req: NextRequest) {
           'Content-Type':  'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ name, description, permissionCodes }),
+        body: JSON.stringify({
+          name: name,
+          description: description,
+          permissionCodes: permissionCodes
+        }),
       }
     )
 
     // Propaga error si no es 2xx
     if (!backendRes.ok) {
-      const errorText = await backendRes.text()
+      let errJson: any
+      try {
+        errJson = await backendRes.json()
+      } catch {
+        // fallback por si no viene JSON
+        return NextResponse.json(
+          { message: 'Error al crear el rol' },
+          { status: backendRes.status }
+        )
+      }
+
       return NextResponse.json(
-        { message: `Backend error: ${errorText}` },
+        { message: errJson.message ?? 'Error al crear el rol' },
         { status: backendRes.status }
       )
     }
@@ -93,6 +108,6 @@ export async function POST(req: NextRequest) {
 
   } catch (err) {
     console.error('Error proxy /api/roles POST:', err)
-    return NextResponse.json({ message: 'Error interno' }, { status: 500 })
+    return NextResponse.json({ message: serverErrorMsg }, { status: 500 })
   }
 }

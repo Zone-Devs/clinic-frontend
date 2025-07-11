@@ -90,7 +90,7 @@ export default function RolesTable() {
     }
   }, 500), [])
 
-  const refrescar = () => debouncedFetch('', 1)
+  const refresh = () => debouncedFetch('', 1)
 
   useEffect(() => {
     debouncedFetch(search, page)
@@ -123,7 +123,7 @@ export default function RolesTable() {
         </div>
 
         {/* Botón “Nuevo rol” */}
-        <CreateRoleDialog onCreated={refrescar} />
+        <CreateRoleDialog onCreated={refresh} />
       </div>
 
       {/* ─── CARDS EN MÓVIL ─── */}
