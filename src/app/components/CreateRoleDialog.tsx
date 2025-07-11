@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import axiosClient from '@/utils/axiosClient'
 import axios, { AxiosError } from 'axios'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import {
   Card,
@@ -21,7 +22,9 @@ import {
 
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'react-toastify'
+import { PermissionCard } from '@/app/components/PermissionCard'
 
 interface Permission {
   code: string
@@ -60,6 +63,8 @@ export function CreateRoleDialog({ onCreated }: Props) {
   const [loadingPerms, setLoadingPerms] = useState(false)
   const [errorPerms, setErrorPerms] = useState<string>()
   const [selected, setSelected] = useState<string[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
 
   // cargar permisos al abrir
   useEffect(() => {
@@ -73,12 +78,21 @@ export function CreateRoleDialog({ onCreated }: Props) {
       .catch(() => setErrorPerms('No se pudieron cargar los permisos.'))
       .finally(() => setLoadingPerms(false))
   }, [open])
-
-  const togglePermission = (code: string) => {
-    setSelected((sel) =>
-      sel.includes(code) ? sel.filter((x) => x !== code) : [...sel, code]
+  const togglePermission = useCallback((code: string) => {
+    setSelected(sel =>
+      sel.includes(code)
+        ? sel.filter(x => x !== code)
+        : [...sel, code]
     )
-  }
+  }, [])
+
+  const toggleAll = useCallback((codes: string[], checked: boolean) => {
+    setSelected(sel =>
+      checked
+        ? Array.from(new Set([...sel, ...codes]))
+        : sel.filter(c => !codes.includes(c))
+    )
+  }, [])
 
   const validate = () => {
     const errs = { name: '', desc: '', perms: '' }
@@ -118,6 +132,8 @@ export function CreateRoleDialog({ onCreated }: Props) {
     e.preventDefault()
     if (!validate()) return
 
+    setIsSubmitting(true)
+
     try {
       await axiosClient.post('/api/roles', {
         name,
@@ -125,7 +141,6 @@ export function CreateRoleDialog({ onCreated }: Props) {
         permissionCodes: selected,
       })
 
-      // limpio estado y cierro
       resetForm()
       setOpen(false)
       onCreated()
@@ -143,131 +158,114 @@ export function CreateRoleDialog({ onCreated }: Props) {
       }
 
       toast.error(msg)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const permissionsUI = useMemo(() => {
-    if (loadingPerms)  return <p>Cargando permisos…</p>
-    if (errorPerms)    return <p className="text-red-600">{errorPerms}</p>
+    if (loadingPerms) {
+      return (
+        <>
+          <div className="hidden md:flex gap-6">
+            {permissionsGrouped.map((_, i) => (
+              <Card key={i} className="flex-1 shadow animate-pulse">
+                <CardHeader className="px-4 py-2">
+                  <Skeleton className="h-6 w-1/2" />
+                </CardHeader>
+                <CardContent className="p-3 space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {/* skeleton móvil */}
+          <div className="md:hidden space-y-4">
+            {permissionsGrouped.map((_, i) => (
+              <div key={i} className="p-4 border rounded-lg shadow animate-pulse">
+                <Skeleton className="h-5 w-1/3 mb-2" />
+                <Skeleton className="h-4 w-full mb-1" />
+                <Skeleton className="h-4 w-5/6" />
+              </div>
+            ))}
+          </div>
+        </>
+      )
+    }
+    if (errorPerms) return <p className="text-red-600">{errorPerms}</p>
 
     return (
-      <>
-        {/* Desktop: 3 cards */}
-        <div className="hidden md:flex gap-6">
-          {permissionsGrouped.map((col, i) => (
-            <Card key={i} className="flex-2 shadow rounded-lg pt-0 overflow-hidden">
-              {col
-                .map(name => groups.find(g => g.group === name))
-                .filter(Boolean)
-                .map(group => {
-                  const codes = group!.permissions.map(p => p.code)
-                  const allSel = codes.every(c => selected.includes(c))
-                  return (
-                    <div key={group!.group}>
-                      <CardHeader className="flex items-center justify-between bg-gray-100 px-4 py-2 rounded-t-lg">
-                        <CardTitle className="text-lg">{group!.group}</CardTitle>
-                        <Checkbox
-                          checked={allSel}
-                          onCheckedChange={checked => {
-                            setSelected(sel =>
-                              checked
-                                ? Array.from(new Set([...sel, ...codes]))
-                                : sel.filter(c => !codes.includes(c))
-                            )
-                          }}
-                        />
-                      </CardHeader>
-                      <CardContent className="space-y-2 p-3">
-                        {group!.permissions.map(perm => (
-                          <label key={perm.code} className="flex items-center space-x-2">
-                            <Checkbox
-                              checked={selected.includes(perm.code)}
-                              onCheckedChange={() => togglePermission(perm.code)}
-                            />
-                            <span className="text-sm">{perm.name}</span>
-                          </label>
-                        ))}
-                      </CardContent>
-                    </div>
-                  )
-                })}
-            </Card>
-          ))}
-        </div>
-
-        {/* Móvil: tal cual ya lo tienes */}
-        <div className="md:hidden space-y-4">
-          {groups.map(group => (
-            <div key={group.group} className="p-4 border rounded-lg shadow-sm">
-              <h3 className="font-semibold mb-2">{group.group}</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {group.permissions.map(perm => (
-                  <label key={perm.code} className="flex items-center space-x-2">
-                    <Checkbox
-                      checked={selected.includes(perm.code)}
-                      onCheckedChange={() => togglePermission(perm.code)}
-                    />
-                    <span className="text-sm">{perm.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </>
+      <div className="hidden md:flex gap-6">
+        {permissionsGrouped.map((colNames, colIndex) => (
+          <div key={colIndex} className="space-y-2 flex-1">
+            {colNames.map(groupName => {
+              const grp = groups.find(g => g.group === groupName)
+              return grp ? (
+                <PermissionCard
+                  key={grp.group}
+                  group={grp}
+                  selected={selected}
+                  onToggle={togglePermission}
+                  onToggleAll={toggleAll}
+                />
+              ) : null
+            })}
+          </div>
+        ))}
+      </div>
     )
-  }, [groups, selected, loadingPerms, errorPerms])
+  }, [groups, loadingPerms, errorPerms, selected, togglePermission, toggleAll])
 
-  return (
+    return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>Crear nuevo rol</Button>
       </DialogTrigger>
-      <DialogContent className="
-        w-full
-        max-w-[90vw]
-        sm:max-w-[80vw]
-        md:max-w-[50rem]     /* antes 32rem, ahora ~42rem */
-        lg:max-w-[70rem]     /* antes 36rem, ahora ~48rem */
-        max-h-[90vh]
-        overflow-y-auto
-      ">
+      <DialogContent
+        aria-labelledby="create-role-title"
+        aria-describedby="create-role-desc"
+        className="
+          w-full max-w-[90vw] sm:max-w-[80vw]
+          md:max-w-[50rem] lg:max-w-[70rem]
+          max-h-[90vh] overflow-y-auto
+        "
+      >
+
         <DialogHeader>
-          <DialogTitle>Crear nuevo rol</DialogTitle>
+          <DialogTitle id="create-role-title">Crear nuevo rol</DialogTitle>
+          <DialogDescription id="create-role-desc">
+            Rellena los campos y asigna los permisos que quieras otorgar.
+          </DialogDescription>
           <DialogClose className="absolute right-4 top-4" />
         </DialogHeader>
-
         <form onSubmit={submit} className="space-y-4 mt-2">
-          {/* Nombre */}
           <div>
             <label className="block text-sm font-medium mb-1">Nombre</label>
             <Input
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={e => setName(e.target.value)}
+              disabled={isSubmitting}
             />
             {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
           </div>
-
-          {/* Descripción */}
           <div>
             <label className="block text-sm font-medium mb-1">Descripción</label>
             <Input
               value={desc}
-              onChange={(e) => setDesc(e.target.value)}
+              onChange={e => setDesc(e.target.value)}
+              disabled={isSubmitting}
             />
             {errors.desc && <p className="text-red-600 text-sm mt-1">{errors.desc}</p>}
           </div>
-
-          {/* Permisos */}
-          {permissionsUI}
-          {errors.perms && (
-            <p className="text-red-600 text-sm mt-1">{errors.perms}</p>
-          )}
-
-          {/* Botón Crear */}
+          <div>
+            <span className="block text-sm font-medium mb-2">Permisos</span>
+            {permissionsUI}
+            {errors.perms && <p className="text-red-600 text-sm mt-1">{errors.perms}</p>}
+          </div>
           <div className="flex justify-end">
-            <Button type="submit">
-              Crear rol
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Creando…' : 'Crear rol'}
             </Button>
           </div>
         </form>
