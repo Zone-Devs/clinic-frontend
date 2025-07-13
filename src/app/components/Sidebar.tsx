@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { FiMenu, FiX } from 'react-icons/fi'
+import { Menu } from 'lucide-react'
 import {
   Sheet,
   SheetTrigger,
@@ -30,7 +30,7 @@ export default function Sidebar() {
               z-50 p-2 bg-white rounded shadow
             "
          >
-           <FiMenu size={24} />
+           <Menu size={24} />
          </button>
        </SheetTrigger>
 

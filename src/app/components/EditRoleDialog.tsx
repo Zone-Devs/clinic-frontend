@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import axiosClient from '@/utils/axiosClient'
-import { FiEdit } from 'react-icons/fi'
+import { Edit } from 'lucide-react'
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -49,7 +49,7 @@ export function EditRoleDialog({ role, onEdited }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon"><FiEdit /></Button>
+        <Button variant="outline" size="icon"><Edit /></Button>
       </DialogTrigger>
       <DialogContent className="w-full max-w-md">
         <DialogHeader>

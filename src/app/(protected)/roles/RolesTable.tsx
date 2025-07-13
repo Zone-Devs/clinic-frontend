@@ -3,8 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import debounce from 'lodash.debounce'
 import axiosClient from '@/utils/axiosClient'
-import { FiSearch } from 'react-icons/fi'
-
+import { Search } from 'lucide-react'
 // shadcn/ui
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -108,7 +107,8 @@ export default function RolesTable() {
       {/* Buscador + Nuevo rol */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 space-y-2 sm:space-y-0">
         <div className="flex items-center space-x-2 w-full sm:w-md">
-          <FiSearch className="text-muted-foreground" />
+          <Search className="text-muted-foreground" />
+
           <Input
             placeholder="Buscar por nombre…"
             value={search}

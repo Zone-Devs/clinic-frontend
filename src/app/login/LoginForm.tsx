@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 
 // 1) Esquema de validación

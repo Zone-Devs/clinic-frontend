@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import axiosClient from '@/utils/axiosClient'
-import axios, { AxiosError } from 'axios'
+import axios from 'axios'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -16,15 +16,14 @@ import {
 import {
   Card,
   CardHeader,
-  CardTitle,
   CardContent,
 } from '@/components/ui/card'
 
 import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'react-toastify'
 import { PermissionCard } from '@/app/components/PermissionCard'
+import { CirclePlusIcon, Plus, UserCog } from 'lucide-react'
 
 interface Permission {
   code: string
@@ -50,6 +49,8 @@ export function CreateRoleDialog({ onCreated }: Props) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [desc, setDesc] = useState('')
+  const nameRef = useRef<HTMLDivElement>(null)
+  const descRef = useRef<HTMLDivElement>(null)
 
   // errores de validación
   const [errors, setErrors] = useState({
@@ -94,28 +95,6 @@ export function CreateRoleDialog({ onCreated }: Props) {
     )
   }, [])
 
-  const validate = () => {
-    const errs = { name: '', desc: '', perms: '' }
-    if (!name.trim()) {
-      errs.name = 'El nombre es obligatorio.'
-    } else if ((name.trim()).length < 3) {
-      if ((name.trim()).length < 3) errs.name = 'El nombre debe contener más de 2 caracteres.'
-    } else {
-      errs.name = '';
-    }
-    if (!desc.trim()) {
-      errs.desc = 'La descripción es obligatoria.'
-    } else if ((desc.trim()).length < 3) {
-      if ((desc.trim()).length < 3) errs.desc = 'La descripción debe contener más de 2 caracteres.'
-    } else {
-      errs.desc = '';
-    }
-    if (selected.length === 0) errs.perms = 'Debes seleccionar al menos un permiso.'
-    setErrors(errs)
-    // válido si todos los mensajes de error están vacíos
-    return !errs.name && !errs.desc && !errs.perms
-  }
-
   const resetForm = () => {
     setName('')
     setDesc('')
@@ -130,7 +109,25 @@ export function CreateRoleDialog({ onCreated }: Props) {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!validate()) return
+    // if (!validate()) return
+    const errs = { name: "", desc: "", perms: "" }
+    if (!name.trim()) errs.name = "El nombre es obligatorio."
+    else if (name.trim().length < 3) errs.name = "…más de 2 caracteres."
+    if (!desc.trim()) errs.desc = "La descripción es obligatoria."
+    else if (desc.trim().length < 3)
+      errs.desc = "…más de 2 caracteres."
+    if (selected.length === 0) errs.perms = "Debes seleccionar al menos un permiso."
+
+    setErrors(errs)
+
+    if (errs.name) {
+      nameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      return
+    }
+    if (errs.desc) {
+      descRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      return
+    }
 
     setIsSubmitting(true)
 
@@ -220,11 +217,9 @@ export function CreateRoleDialog({ onCreated }: Props) {
     return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button>Crear nuevo rol</Button>
+        <Button><Plus />Crear nuevo rol</Button>
       </DialogTrigger>
       <DialogContent
-        aria-labelledby="create-role-title"
-        aria-describedby="create-role-desc"
         className="
           w-full max-w-[90vw] sm:max-w-[80vw]
           md:max-w-[50rem] lg:max-w-[70rem]
@@ -233,14 +228,14 @@ export function CreateRoleDialog({ onCreated }: Props) {
       >
 
         <DialogHeader>
-          <DialogTitle id="create-role-title">Crear nuevo rol</DialogTitle>
-          <DialogDescription id="create-role-desc">
+          <DialogTitle>Crear nuevo rol</DialogTitle>
+          <DialogDescription className="sr-only">
             Rellena los campos y asigna los permisos que quieras otorgar.
           </DialogDescription>
           <DialogClose className="absolute right-4 top-4" />
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4 mt-2">
-          <div>
+          <div ref={nameRef}>
             <label className="block text-sm font-medium mb-1">Nombre</label>
             <Input
               value={name}
@@ -249,7 +244,7 @@ export function CreateRoleDialog({ onCreated }: Props) {
             />
             {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
           </div>
-          <div>
+          <div ref={descRef}>
             <label className="block text-sm font-medium mb-1">Descripción</label>
             <Input
               value={desc}
@@ -264,7 +259,8 @@ export function CreateRoleDialog({ onCreated }: Props) {
             {errors.perms && <p className="text-red-600 text-sm mt-1">{errors.perms}</p>}
           </div>
           <div className="flex justify-end">
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} isLoading={isSubmitting}>
+              {!isSubmitting && <UserCog />}
               {isSubmitting ? 'Creando…' : 'Crear rol'}
             </Button>
           </div>

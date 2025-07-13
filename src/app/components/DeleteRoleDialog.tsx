@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import axiosClient from '@/utils/axiosClient'
-import { FiTrash2 } from 'react-icons/fi'
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog'
+import { Trash2 } from 'lucide-react'
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { toast } from 'react-toastify'
 
@@ -34,12 +34,15 @@ export function DeleteRoleDialog({ roleId, onDeleted }: Props) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="destructive" size="icon">
-          <FiTrash2 />
+          <Trash2 />
         </Button>
       </DialogTrigger>
       <DialogContent className="w-full max-w-xs">
         <DialogHeader>
           <DialogTitle>Confirmar eliminación</DialogTitle>
+          <DialogDescription className="sr-only">
+            Cuadro de dialogo confirmando la eliminacion del rol.
+          </DialogDescription>
           <DialogClose className="absolute right-4 top-4" />
         </DialogHeader>
         <p className="mt-2">¿Estás seguro de que deseas eliminar este rol?</p>
