@@ -13,6 +13,8 @@ interface PermissionGroup {
   permissions: Permission[]
 }
 
+const errorStyle = `mt-1 py-1 text-red-700 text-sm animate-pulse`
+
 export function RoleForm(props: {
   name: string
   onName: (v: string) => void
@@ -30,13 +32,13 @@ export function RoleForm(props: {
     <>
       <div ref={props.nameRef}>
         <label>Nombre</label>
-        <Input value={props.name} onChange={e => props.onName(e.target.value)} />
-        {props.errors.name && <p>{props.errors.name}</p>}
+        <Input value={props.name} className="border-2" onChange={e => props.onName(e.target.value)} />
+        {props.errors.name && <p className={errorStyle}>{props.errors.name}</p>}
       </div>
       <div ref={props.descRef}>
         <label>Descripción</label>
-        <Input value={props.desc} onChange={e => props.onDesc(e.target.value)} />
-        {props.errors.desc && <p>{props.errors.desc}</p>}
+        <Input value={props.desc} className="border-2" onChange={e => props.onDesc(e.target.value)} />
+        {props.errors.desc && <p className={errorStyle}>{props.errors.desc}</p>}
       </div>
       <div>
         <span>Permisos</span>
@@ -51,7 +53,7 @@ export function RoleForm(props: {
             />
           ))}
         </div>
-        {props.errors.perms && <p>{props.errors.perms}</p>}
+        {props.errors.perms && <p className={errorStyle}>{props.errors.perms}</p>}
       </div>
     </>
   )

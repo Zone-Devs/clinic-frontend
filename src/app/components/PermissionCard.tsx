@@ -30,7 +30,7 @@ export const PermissionCard = memo(function PermissionCard({
       <CardHeader className="flex items-center justify-between text-primary-foreground bg-primary px-4 py-2">
         <CardTitle className="text-lg">{group.group}</CardTitle>
         <Checkbox
-          className="h-5 w-5 bg-white hover:hover:bg-primary/90"
+          className="h-5 w-5 border-black bg-white hover:hover:bg-primary/90"
           checked={allSel}
           onCheckedChange={ch => onToggleAll(codes, !!ch)}
         />
@@ -39,7 +39,7 @@ export const PermissionCard = memo(function PermissionCard({
         {group.permissions.map(perm => (
           <label key={perm.code} className="flex items-center space-x-2">
             <Checkbox
-              className="h-5 w-5 bg-white hover:bg-primary/90"
+              className="h-5 w-5 border-black/50 bg-white hover:bg-primary/90"
               checked={selected.includes(perm.code)}
               onCheckedChange={() => onToggle(perm.code)}
             />

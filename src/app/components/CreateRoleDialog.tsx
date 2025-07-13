@@ -22,6 +22,12 @@ export function CreateRoleDialog({ onCreated }: { onCreated: () => void }) {
   const nameRef = useRef<HTMLDivElement>(null)
   const descRef = useRef<HTMLDivElement>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      form.reset()
+    }
+    setOpen(isOpen)
+  }
 
   const handleSubmit = async () => {
     const errs = form.validate()
@@ -49,7 +55,6 @@ export function CreateRoleDialog({ onCreated }: { onCreated: () => void }) {
     try {
       await axiosClient.post("/api/roles", payload)
 
-      // ← aquí va tu sección 3:
       toast.success("Rol creado correctamente")
       form.reset()
       setOpen(false)
@@ -68,7 +73,7 @@ export function CreateRoleDialog({ onCreated }: { onCreated: () => void }) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button><Plus /> Crear rol</Button>
       </DialogTrigger>

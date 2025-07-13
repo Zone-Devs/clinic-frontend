@@ -44,6 +44,12 @@ export function EditRoleDialog({
   const nameRef = useRef<HTMLDivElement>(null)
   const descRef = useRef<HTMLDivElement>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      form.reset()
+    }
+    setOpen(isOpen)
+  }
 
   const handleSubmit = async () => {
     const errs = form.validate()
@@ -89,19 +95,20 @@ export function EditRoleDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" size="icon"><Edit /></Button>
       </DialogTrigger>
-      <DialogContent className="
-        bg-background
-        data-[state=open]:animate-in data-[state=closed]:animate-out
-        fixed top-[50%] left-[50%] z-50
-        w-full max-w-[90vw] sm:max-w-[80vw]
-        md:max-w-[50rem] lg:max-w-[70rem]
-        translate-x-[-50%] translate-y-[-50%]
-        max-h-[90vh] overflow-y-auto
-        rounded-lg border p-6 shadow-lg
+      <DialogContent   onOpenAutoFocus={e => e.preventDefault()}
+        className="
+          bg-background
+          data-[state=open]:animate-in data-[state=closed]:animate-out
+          fixed top-[50%] left-[50%] z-50
+          w-full max-w-[90vw] sm:max-w-[80vw]
+          md:max-w-[50rem] lg:max-w-[70rem]
+          translate-x-[-50%] translate-y-[-50%]
+          max-h-[90vh] overflow-y-auto
+          rounded-lg border p-6 shadow-lg
       ">
         <DialogHeader>
           <DialogTitle>Editar rol</DialogTitle>
@@ -112,7 +119,15 @@ export function EditRoleDialog({
             nameRef={nameRef}
             descRef={descRef}
           />
-        <div className="flex justify-end">
+        <div className="flex justify-end space-x-3 mt-6">
+          <Button
+            variant="destructive"
+            onClick={() => {
+              setOpen(false)
+            }}
+          >
+            Cancelar
+          </Button>
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting}
