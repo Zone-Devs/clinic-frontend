@@ -53,3 +53,61 @@ export async function DELETE(
     )
   }
 }
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const token = req.cookies.get('token')?.value
+  if (!token) {
+    return NextResponse.json({ message: 'No autorizado' }, { status: 401 })
+  }
+
+  const { id: roleId } = await params
+  let body: { name: string; description?: string; permissionCodes: string[] }
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json(
+      { message: 'Payload inválido' },
+      { status: 400 }
+    )
+  }
+
+  // proxy al backend real…
+  try {
+    const backendRes = await fetch(
+      `${BACKEND_URL}/api/roles/${encodeURIComponent(roleId)}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      }
+    )
+
+    const text = await backendRes.text()
+    if (backendRes.ok) {
+      // respondemos 200 con el JSON del backend (o null)
+      try {
+        return NextResponse.json(JSON.parse(text), { status: 200 })
+      } catch {
+        return NextResponse.json(null, { status: 200 })
+      }
+    }
+
+    let msg = serverErrorMsg
+    try {
+      const json = JSON.parse(text)
+      if (json.message) msg = json.message
+    } catch {
+      msg = text || msg
+    }
+    return NextResponse.json({ message: msg }, { status: backendRes.status })
+  } catch (err) {
+    console.error('Error proxy PUT /api/roles/[id]:', err)
+    return NextResponse.json({ message: serverErrorMsg }, { status: 500 })
+  }
+}
