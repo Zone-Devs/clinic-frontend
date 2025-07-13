@@ -319,6 +319,7 @@ export default function RolesTable() {
                       <DeleteRoleDialog
                         roleId={role.id}
                         onDeleted={refresh}
+                        roleName={role.name}
                       />
                     </TableCell>
                   </TableRow>

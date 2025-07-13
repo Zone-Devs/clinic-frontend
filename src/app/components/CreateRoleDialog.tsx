@@ -39,7 +39,7 @@ interface Props {
 }
 
 // Note: If some group has been updated, this const should be updated too...
-const permissionsGrouped = [
+export const permissionsGrouped = [
   ['Calendario', 'Dashboard', 'Pagos', 'Roles y Permisos'],
   ['Mascotitas', 'Staff', 'Veterinario'],
   ['Citas Medicas', 'Historial Medico', 'Procedimientos quirúrgicos', 'Vacunas']
@@ -137,7 +137,7 @@ export function CreateRoleDialog({ onCreated }: Props) {
         description: desc,
         permissionCodes: selected,
       })
-
+      toast.success("Rol creado correctamente");
       resetForm()
       setOpen(false)
       onCreated()

@@ -10,9 +10,10 @@ import { toast } from 'react-toastify'
 interface Props {
   roleId: string
   onDeleted: () => void
+  roleName: string
 }
 
-export function DeleteRoleDialog({ roleId, onDeleted }: Props) {
+export function DeleteRoleDialog({ roleId, onDeleted, roleName }: Props) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -45,7 +46,7 @@ export function DeleteRoleDialog({ roleId, onDeleted }: Props) {
           </DialogDescription>
           <DialogClose className="absolute right-4 top-4" />
         </DialogHeader>
-        <p className="mt-2">¿Estás seguro de que deseas eliminar este rol?</p>
+        <p className="mt-2">¿Estás seguro de que deseas eliminar el rol <strong>{roleName}</strong>?</p>
         <div className="mt-4 flex justify-end space-x-2">
           <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
             Cancelar
