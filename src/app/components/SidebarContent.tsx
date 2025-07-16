@@ -26,6 +26,9 @@ export default function SidebarContent() {
       <Link href="/roles" className={linkClasses('/roles')}>
         Roles y permisos
       </Link>
+      <Link href="/stages" className={linkClasses('/stages')}>
+        Stages
+      </Link>
       {/* … más enlaces … */}
     </nav>
   )

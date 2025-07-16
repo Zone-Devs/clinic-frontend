@@ -6,13 +6,7 @@ export async function POST(req: NextRequest) {
   const url = new URL('/login', req.url)
   const res = NextResponse.redirect(url)
 
-  res.cookies.set('token', '', {
-    path: '/',
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 0,     // aquí caduca inmediatamente
-  })
+  res.cookies.delete('token')
 
   return res
 }

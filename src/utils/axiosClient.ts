@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { isTokenExpired } from './token'
+import { isTokenExpired, getToken, clearToken } from './token'
 
 const client = axios.create({
   baseURL: '',
@@ -8,20 +8,32 @@ const client = axios.create({
 })
 
 client.interceptors.request.use(config => {
-  const match = document.cookie.match(/(?:^|; )token=([^;]+)/)
-  const token = match?.[1]
-
+  const token = getToken()
   if (token) {
-    if (!isTokenExpired(token)) {
-      config.headers = config.headers || {}
-      config.headers.Authorization = `Bearer ${token}`
-    } else {
-      document.cookie = 'token=; path=/; max-age=0'
+    if (isTokenExpired(token)) {
+      clearToken()
       window.location.href = '/login'
       return Promise.reject(new Error('Token expirado'))
     }
+    config.headers = config.headers || {}
+    config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })
+
+client.interceptors.response.use(
+  response => response,
+  async error => {
+    if (error.response?.status === 401) {
+      await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      })
+      clearToken()
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
 
 export default client

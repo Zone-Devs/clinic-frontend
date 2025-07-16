@@ -5,7 +5,6 @@ export default async function DashboardPage() {
   const token = cookieStore.get('token')?.value;
 
   if (!token) {
-    // Redirect to the login if there is no logged user
     return (
       <script
         dangerouslySetInnerHTML={{

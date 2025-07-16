@@ -1,25 +1,31 @@
-// src/utils/auth.ts
-import jwt from 'jsonwebtoken';
+// utils/auth.ts
+import { jwtDecode } from 'jwt-decode'
 
-const SECRET = process.env.JWT_SECRET || 'dev-secret';
+const COOKIE_NAME = 'token'
 
-// Mock data
-const users = [
-  { id: '1', email: 'user@ex.com', password: '1234', name: 'Usuario Ejemplo' },
-];
-
-export function validateUser(email: string, password: string) {
-  return users.find(u => u.email === email && u.password === password) || null;
+export function getToken(): string | null {
+  const match = document.cookie.match(
+    new RegExp('(?:^|; )' + COOKIE_NAME + '=([^;]*)')
+  )
+  return match ? decodeURIComponent(match[1]) : null
 }
 
-export function signToken(payload: { id: string; email: string }) {
-  return jwt.sign(payload, SECRET, { expiresIn: '1h' });
+export function clearToken() {
+  document.cookie = `${COOKIE_NAME}=; Path=/; Max-Age=0`
 }
 
-export function verifyToken(token: string) {
+export function getTokenExpiry(): number | null {
+  const token = getToken()
+  if (!token) return null
   try {
-    return jwt.verify(token, SECRET) as { id: string; email: string; iat: number; exp: number };
+    const { exp } = jwtDecode<{ exp: number }>(token)
+    return exp * 1000
   } catch {
-    return null;
+    return null
   }
+}
+
+export function isTokenExpired(): boolean {
+  const expiry = getTokenExpiry()
+  return !expiry || Date.now() >= expiry
 }

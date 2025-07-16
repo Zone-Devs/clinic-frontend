@@ -1,17 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { Menu, LogOut, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetTrigger,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetClose,
-} from '@/components/ui/sheet'
-import SidebarContent from '@/app/components/SidebarContent'
 import {
   Avatar,
   AvatarFallback,
@@ -23,6 +12,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
+import { LogoutButton } from './LogoutButton'
 
 interface Props {
   onMenuToggle?: () => void
@@ -67,12 +57,7 @@ export default function NavbarClient({ onMenuToggle, user }: Props) {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <form action="/api/logout" method="post" className="w-full">
-                <Button variant="ghost" size="sm" className="w-full justify-start">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </Button>
-              </form>
+              <LogoutButton />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

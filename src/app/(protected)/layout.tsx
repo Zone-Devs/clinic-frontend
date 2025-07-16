@@ -2,7 +2,7 @@
 import type { ReactNode } from 'react'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import ClientRootLayout from '@/app/components/ClientRootLayout'
+import ClientRootLayout from '@/app/components/roles/ClientRootLayout'
 
 export default async function ProtectedLayout({
   children,

@@ -35,9 +35,9 @@ import {
   CardTitle,
   CardContent,
 } from '@/components/ui/card'
-import { CreateRoleDialog } from '@/app/components/CreateRoleDialog'
-import { EditRoleDialog } from '@/app/components/EditRoleDialog'
-import { DeleteRoleDialog } from '@/app/components/DeleteRoleDialog'
+import { CreateRoleDialog } from '@/app/components/roles/CreateRoleDialog'
+import { EditRoleDialog } from '@/app/components/roles/EditRoleDialog'
+import { DeleteRoleDialog } from '@/app/components/roles/DeleteRoleDialog'
 
 interface Permission { code: string; name: string }
 interface PermissionGroup { group: string; permissions: Permission[] }
