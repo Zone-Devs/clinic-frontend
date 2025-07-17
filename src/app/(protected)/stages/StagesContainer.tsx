@@ -52,6 +52,14 @@ export default function StageContainer() {
   const [stageToDelete, setStageToDelete] = useState<string | null>(null)
   const [stageToDeleteName, setStageToDeleteName] = useState<string>('')
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [stageToEdit, setStageToEdit] = useState<Stage | null>(null)
+  const [formValues, setFormValues] = useState({
+    name: '',
+    description: '',
+    color: '',
+  })
+  const [isUpdating, setIsUpdating] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -128,6 +136,43 @@ export default function StageContainer() {
      setStageToDelete(null)
    }
  }
+
+  function initiateEdit(stage: Stage) {
+    setStageToEdit(stage)
+    setFormValues({
+      name: stage.name,
+      description: stage.description,
+      color: stage.color,
+    })
+    setShowEditModal(true)
+  }
+
+  async function confirmEdit() {
+    if (!stageToEdit) return
+    setIsUpdating(true)
+
+    try {
+      const { data: updatedStage } = await axiosClient.patch<Stage>(
+        `/api/stages/${stageToEdit.id}`,
+        {
+          name: formValues.name,
+          description: formValues.description,
+          color: formValues.color,
+        }
+      )
+      // actualizamos la lista con el objeto devuelto
+      setStages((prev) =>
+        prev.map((s) => (s.id === updatedStage.id ? updatedStage : s))
+      )
+      toast.success('Etapa actualizada')
+      setShowEditModal(false)
+    } catch (err) {
+      console.error('Error actualizando etapa:', err)
+      toast.error('No se pudo actualizar')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
 
   return (
     <>
@@ -216,6 +261,82 @@ export default function StageContainer() {
          </DialogContent>
        </Dialog>
 
+        {/* Modal de editar */}
+        <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+          <DialogContent onOpenAutoFocus={event => event.preventDefault()}>
+            <DialogHeader>
+              <DialogTitle>
+                Editar etapa: {stageToEdit?.name}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-2">
+              <label className="block">
+                <span className="text-sm font-medium">Nombre</span>
+                <input
+                  type="text"
+                  className="mt-1 block w-full rounded border px-3 py-2"
+                  value={formValues.name}
+                  onChange={(e) =>
+                    setFormValues((f) => ({ ...f, name: e.target.value }))
+                  }
+                />
+              </label>
+              <label className="block">
+                <span className="text-sm font-medium">Descripción</span>
+                <textarea
+                  className="mt-1 block w-full rounded border px-3 py-2"
+                  rows={3}
+                  value={formValues.description}
+                  onChange={(e) =>
+                    setFormValues((f) => ({ ...f, description: e.target.value }))
+                  }
+                />
+              </label>
+                <div className="flex items-center gap-2">
+                  {/* El label ya no envuelve al input, sólo lo describe */}
+                  <label htmlFor="color-picker" className="text-sm font-medium">
+                    Color
+                  </label>
+
+                  {/* El input es sólo un cuadrado 7×7 redondeado */}
+                  <input
+                    id="color-picker"
+                    type="color"
+                    className="
+                      h-7 w-7
+                      rounded-full
+                      border-4
+                      p-0
+                      appearance-none
+                      cursor-pointer
+                    "
+                    value={formValues.color}
+                    onChange={e =>
+                      setFormValues(f => ({ ...f, color: e.target.value }))
+                    }
+                  />
+                </div>
+            </div>
+            <DialogFooter className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowEditModal(false)}
+                disabled={isUpdating}
+              >
+                Cancelar
+              </Button>
+              <Button
+                className='bg-primary text-primary-foreground'
+                onClick={confirmEdit}
+                isLoading={isUpdating}
+              >
+                Guardar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+
         {/* Guardar sólo si hubo cambios */}
         {hasChanges && (
           <Button
@@ -247,6 +368,7 @@ export default function StageContainer() {
                 accentColor={stage.color}
                 leftLabel={idx + 1}
                 onDelete={() => initiateDelete(stage.id, stage.name)}
+                onEdit={() => initiateEdit(stage)}
               >
                 <div className="flex items-center gap-2">
                   <span

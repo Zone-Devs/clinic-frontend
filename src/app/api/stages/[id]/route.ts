@@ -64,7 +64,7 @@ export async function PATCH(
   }
 
   const { id: stageId } = await params
-  let body: { name: string; description?: string; permissionCodes: string[] }
+  let body: { name: string; description: string; color: string }
   try {
     body = await req.json()
   } catch {
@@ -77,7 +77,7 @@ export async function PATCH(
   // proxy al backend real…
   try {
     const backendRes = await fetch(
-      `${BACKEND_URL}/api/roles/${encodeURIComponent(stageId)}`,
+      `${BACKEND_URL}/api/stages/${encodeURIComponent(stageId)}`,
       {
         method: 'PATCH',
         headers: {
@@ -107,7 +107,7 @@ export async function PATCH(
     }
     return NextResponse.json({ message: msg }, { status: backendRes.status })
   } catch (err) {
-    console.error('Error proxy PUT /api/roles/[id]:', err)
+    console.error('Error proxy PUT /api/stages/[id]:', err)
     return NextResponse.json({ message: serverErrorMsg }, { status: 500 })
   }
 }
