@@ -7,6 +7,8 @@ import {
   defaultAnimateLayoutChanges,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Button } from '@/components/ui/button';
+import { Edit3, Trash2 } from 'lucide-react';
 
 interface Props {
   id: string;
@@ -14,6 +16,9 @@ interface Props {
   accentColor?: string;
   leftLabel?: React.ReactNode;
   children: React.ReactNode;
+  /** callbacks opcionales */
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 export function SortableItem({
@@ -22,6 +27,8 @@ export function SortableItem({
   accentColor = '#000000ff',
   leftLabel = id,
   children,
+  onEdit,
+  onDelete,
 }: Props) {
   const {
     attributes,
@@ -42,7 +49,7 @@ export function SortableItem({
     transition,
     display: 'flex',
     marginBottom: 8,
-    cursor: 'grab',
+    cursor: disabled ? 'default' : 'grab',
     opacity: isDragging ? 0.8 : 1,
     boxShadow: isDragging
       ? '0 4px 8px rgba(0,0,0,0.1)'
@@ -70,6 +77,7 @@ export function SortableItem({
     flex: 1,
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'space-between',
   };
 
   return (
@@ -80,7 +88,29 @@ export function SortableItem({
       {...listeners}
     >
       <div style={leftPanelStyle}>{leftLabel}</div>
-      <div style={rightContentStyle}>{children}</div>
+      <div style={rightContentStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {children}
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onEdit?.(id)}
+            disabled={!disabled}
+          >
+            <Edit3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete?.(id)}
+            disabled={!disabled}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
