@@ -1,4 +1,3 @@
-// app/(protected)/stages/StageContainer.tsx
 'use client'
 
 import React, { useState, useEffect } from 'react'
@@ -29,7 +28,9 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { SendToBack, X } from 'lucide-react'
+import { Blocks, SendToBack, X } from 'lucide-react'
+import { CreateStageForm } from './CreateStageForm'
+import { EditStageForm } from './EditStageForm'
 
 interface Stage {
   id: string
@@ -48,10 +49,14 @@ export default function StageContainer() {
   const [sortingEnabled, setSortingEnabled] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  /* Delete */
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [stageToDelete, setStageToDelete] = useState<string | null>(null)
   const [stageToDeleteName, setStageToDeleteName] = useState<string>('')
   const [isDeleting, setIsDeleting] = useState(false)
+  /* Edit */
   const [showEditModal, setShowEditModal] = useState(false)
   const [stageToEdit, setStageToEdit] = useState<Stage | null>(null)
   const [formValues, setFormValues] = useState({
@@ -96,21 +101,49 @@ export default function StageContainer() {
     const payload = stages.map((s, idx) => ({
       id: s.id,
       orderNumber: idx + 1,
-    }))
-    setIsSubmitting(true)
+    }));
+    setIsSubmitting(true);
     try {
-      await axiosClient.patch('/api/stages/reorder', payload)
-      setHasChanges(false)
-      toast.success('Flujo guardado con éxito')
+      await axiosClient.patch('/api/stages/reorder', payload);
+
+      setStages(current =>
+        current.map((s, idx) => ({ ...s, orderNumber: idx + 1 }))
+      );
+
+      setHasChanges(false);
+      toast.success('Flujo guardado con éxito');
     } catch (err) {
-      console.error('Error guardando el flujo:', err)
-      toast.error('Error al guardar el flujo')
+      console.error('Error guardando el flujo:', err);
+      toast.error('Error al guardar el flujo');
     } finally {
-      setIsSubmitting(false)
-      setSortingEnabled((e) => !e)
+      setIsSubmitting(false);
+      setSortingEnabled(e => !e);
     }
   }
-
+    /* Creacion de stage */
+  async function confirmCreate() {
+    setIsCreating(true)
+    try {
+      const { data: newStage } = await axiosClient.post<Stage>(
+        '/api/stages',
+        {
+          name:        formValues.name,
+          description: formValues.description,
+          color:       formValues.color || "#000000",
+        }
+      )
+      setStages((prev) =>
+        [...prev, newStage]
+      )
+      toast.success('Etapa creada con éxito')
+      setShowCreateModal(false)
+    } catch (err) {
+      console.error('Error creando etapa:', err)
+      toast.error('No se pudo crear la etapa')
+    } finally {
+      setIsCreating(false)
+    }
+  }
   
  // 1) Inicia el flujo de eliminación (abre modal)
  function initiateDelete(id: string, name: string) {
@@ -178,6 +211,16 @@ export default function StageContainer() {
     <>
       {/* Controles */}
       <div className="flex justify-end gap-2 mb-4">
+        {!sortingEnabled && <Button
+          onClick={() => {
+            setFormValues({ name: '', description: '', color: '' })
+            setShowCreateModal(true)
+          }}
+          className='bg-primary text-primary-foreground hover:bg-gray-700 hover:text-gray-100'
+        >
+          <Blocks />
+          Añadir etapa
+        </Button>}
         <Button
           onClick={() => {
             if (sortingEnabled && hasChanges) {
@@ -191,8 +234,8 @@ export default function StageContainer() {
             setHasChanges(false)
           }}
           className={`
-            px-3 py-2 rounded border border-gray-300 cursor-pointer
-            ${sortingEnabled ? 'bg-red-500/100 text-primary-foreground hover:bg-red-400 hover:text-gray-100' : 'bg-primary text-primary-foreground hover:bg-gray-600 hover:text-gray-100'}
+            cursor-pointer
+            ${sortingEnabled ? 'bg-red-500/100 text-primary-foreground hover:bg-red-400 hover:text-gray-100' : 'bg-primary text-primary-foreground hover:bg-gray-700 hover:text-gray-100'}
           `}
         >
           {sortingEnabled ? <><X />Cancelar</> : <><SendToBack />Reordenar</>}
@@ -233,6 +276,19 @@ export default function StageContainer() {
           </DialogContent>
         </Dialog>
 
+        {/* Dialogo de creacion de stage */}
+        <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+          <DialogContent>
+            <CreateStageForm
+              formValues={formValues}
+              setFormValues={setFormValues}
+              onConfirm={confirmCreate}
+              isLoading={isCreating}
+              onCancel={() => setShowCreateModal(false)}
+            />
+          </DialogContent>
+        </Dialog>
+
        {/* Modal de eliminar */}
        <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
          <DialogContent>
@@ -263,76 +319,16 @@ export default function StageContainer() {
 
         {/* Modal de editar */}
         <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-          <DialogContent onOpenAutoFocus={event => event.preventDefault()}>
-            <DialogHeader>
-              <DialogTitle>
-                Editar etapa: {stageToEdit?.name}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-2">
-              <label className="block">
-                <span className="text-sm font-medium">Nombre</span>
-                <input
-                  type="text"
-                  className="mt-1 block w-full rounded border px-3 py-2"
-                  value={formValues.name}
-                  onChange={(e) =>
-                    setFormValues((f) => ({ ...f, name: e.target.value }))
-                  }
-                />
-              </label>
-              <label className="block">
-                <span className="text-sm font-medium">Descripción</span>
-                <textarea
-                  className="mt-1 block w-full rounded border px-3 py-2"
-                  rows={3}
-                  value={formValues.description}
-                  onChange={(e) =>
-                    setFormValues((f) => ({ ...f, description: e.target.value }))
-                  }
-                />
-              </label>
-                <div className="flex items-center gap-2">
-                  {/* El label ya no envuelve al input, sólo lo describe */}
-                  <label htmlFor="color-picker" className="text-sm font-medium">
-                    Color
-                  </label>
-
-                  {/* El input es sólo un cuadrado 7×7 redondeado */}
-                  <input
-                    id="color-picker"
-                    type="color"
-                    className="
-                      h-7 w-7
-                      rounded-full
-                      border-4
-                      p-0
-                      appearance-none
-                      cursor-pointer
-                    "
-                    value={formValues.color}
-                    onChange={e =>
-                      setFormValues(f => ({ ...f, color: e.target.value }))
-                    }
-                  />
-                </div>
-            </div>
-            <DialogFooter className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowEditModal(false)}
-                disabled={isUpdating}
-              >
-                Cancelar
-              </Button>
-              <Button
-                className='bg-primary text-primary-foreground'
-                onClick={confirmEdit}
-                isLoading={isUpdating}
-              >
-                Guardar
-              </Button>
-            </DialogFooter>
+          <DialogContent>
+             {/* onOpenAutoFocus={event => event.preventDefault()} */}
+            <EditStageForm
+              stageName={stageToEdit?.name || ''}
+              formValues={formValues}
+              setFormValues={setFormValues}
+              onConfirm={confirmEdit}
+              isLoading={isUpdating}
+              onCancel={() => setShowEditModal(false)}
+            />
           </DialogContent>
         </Dialog>
 
@@ -370,17 +366,12 @@ export default function StageContainer() {
                 onDelete={() => initiateDelete(stage.id, stage.name)}
                 onEdit={() => initiateEdit(stage)}
               >
-                <div className="flex items-center gap-2">
-                  <span
-                    style={{
-                      width: 12,
-                      height: 12,
-                      backgroundColor: stage.color,
-                      borderRadius: '50%',
-                    }}
-                  />
-                  <strong>{stage.name}</strong> — {stage.description}
-                </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden">
+                <strong className="w-full truncate">{stage.name}</strong>
+                <p className="text-sm text-gray-600 w-full truncate">
+                  {stage.description}
+                </p>
+              </div>
               </SortableItem>
             ))}
           </SortableContext>

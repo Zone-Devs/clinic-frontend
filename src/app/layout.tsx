@@ -4,8 +4,8 @@ import 'react-toastify/dist/ReactToastify.css'
 import { ToastContainer } from 'react-toastify'
 
 export const metadata: Metadata = {
-  title: 'Sistema de veterinarias',
-  description: 'Created by Zone-devs',
+  title: 'Sistema de trazabilidad',
+  description: 'Created by Zone-Devs',
 }
 
 export default function RootLayout({

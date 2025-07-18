@@ -75,6 +75,7 @@ export function SortableItem({
     backgroundColor: '#fff',
     padding: '12px 16px',
     flex: 1,
+    minWidth: 0,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -89,10 +90,10 @@ export function SortableItem({
     >
       <div style={leftPanelStyle}>{leftLabel}</div>
       <div style={rightContentStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
           {children}
         </div>
-        <div className="flex gap-2">
+        {disabled && <div className="flex gap-2">
           <Button
             variant="ghost"
             size="icon"
@@ -109,7 +110,7 @@ export function SortableItem({
           >
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
-        </div>
+        </div>}
       </div>
     </div>
   );

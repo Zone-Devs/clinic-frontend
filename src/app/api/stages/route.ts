@@ -35,3 +35,69 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: serverErrorMsg }, { status: 500 })
   }
 }
+
+export async function POST(req: NextRequest) {
+  const token = req.cookies.get('token')?.value
+  if (!token) {
+    return NextResponse.json({ message: 'No autorizado' }, { status: 401 })
+  }
+
+  let body: { name: string; description: string; color: string[] }
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ message: 'JSON inválido' }, { status: 400 })
+  }
+
+  const { name, description, color } = body
+  if (typeof name !== 'string' || typeof description !== 'string' || typeof color !== 'string') {
+    return NextResponse.json(
+      { message: 'Faltan campos obligatorios o son de tipo incorrecto' },
+      { status: 400 }
+    )
+  }
+
+  try {
+    const backendRes = await fetch(
+      `${BACKEND_URL}/api/stages`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: name,
+          description: description,
+          color: color
+        }),
+      }
+    )
+
+    // Propaga error si no es 2xx
+    if (!backendRes.ok) {
+      let errJson: any
+      try {
+        errJson = await backendRes.json()
+      } catch {
+        // fallback por si no viene JSON
+        return NextResponse.json(
+          { message: 'Error al crear el rol' },
+          { status: backendRes.status }
+        )
+      }
+
+      return NextResponse.json(
+        { message: errJson.message ?? 'Error al crear el rol' },
+        { status: backendRes.status }
+      )
+    }
+
+    const data = await backendRes.json()
+    return NextResponse.json(data, { status: backendRes.status })
+
+  } catch (err) {
+    console.error('Error proxy /api/roles POST:', err)
+    return NextResponse.json({ message: serverErrorMsg }, { status: 500 })
+  }
+}
