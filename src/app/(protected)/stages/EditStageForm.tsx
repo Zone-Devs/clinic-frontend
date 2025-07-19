@@ -7,6 +7,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { RefreshCcw, X } from 'lucide-react';
 
 interface Props {
   formValues: { name: string; description: string; color: string }
@@ -77,10 +78,12 @@ export const EditStageForm = React.memo(function EditStageForm({
       </div>
       <DialogFooter className="flex justify-end gap-2">
         <Button variant="outline" onClick={onCancel} disabled={isLoading}>
+          <X />
           Cancelar
         </Button>
         <Button onClick={onConfirm} isLoading={isLoading}>
-          Guardar
+          <RefreshCcw />
+          Actualizar
         </Button>
       </DialogFooter>
     </>

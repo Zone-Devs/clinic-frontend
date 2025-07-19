@@ -28,9 +28,10 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { Blocks, SendToBack, X } from 'lucide-react'
+import { Blocks, SendToBack, Trash2, X } from 'lucide-react'
 import { CreateStageForm } from './CreateStageForm'
 import { EditStageForm } from './EditStageForm'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface Stage {
   id: string
@@ -44,6 +45,7 @@ interface Stage {
 
 export default function StageContainer() {
   const [stages, setStages] = useState<Stage[]>([])
+  const [loadingStages, setLoadingStages] = useState(true)
   const [originalStages, setOriginalStages] = useState<Stage[]>([])
   const [showDiscardDialog, setShowDiscardDialog] = useState(false)
   const [sortingEnabled, setSortingEnabled] = useState(false)
@@ -72,6 +74,7 @@ export default function StageContainer() {
   )
 
   useEffect(() => {
+    setLoadingStages(true)
     axiosClient
       .get<Stage[]>('/api/stages')
       .then((res) => {
@@ -80,6 +83,9 @@ export default function StageContainer() {
       .catch((err) => {
         console.error('Error fetching stages:', err)
         toast.error('No se pudieron cargar las etapas')
+      })
+      .finally(() => {
+        setLoadingStages(false)
       })
   }, [])
 
@@ -304,6 +310,7 @@ export default function StageContainer() {
                onClick={() => setShowDeleteModal(false)}
                disabled={isDeleting}
              >
+              <X />
                Cancelar
              </Button>
              <Button
@@ -311,6 +318,7 @@ export default function StageContainer() {
                onClick={confirmDelete}
                isLoading={isDeleting}
              >
+              <Trash2 />
                Eliminar
              </Button>
            </DialogFooter>
@@ -346,6 +354,15 @@ export default function StageContainer() {
       </div>
 
       {/* Zona drag & drop */}
+      {loadingStages ? (
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-lg animate-pulse" />
+          ))}
+        </div>
+      ) : stages.length === 0 ? (
+        <p className="text-center text-gray-500">No se encontraron etapas.</p>
+      ) : (
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -377,6 +394,7 @@ export default function StageContainer() {
           </SortableContext>
         </div>
       </DndContext>
+      )}
     </>
   )
 }

@@ -7,6 +7,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { Save, X } from 'lucide-react';
 
 interface Props {
   formValues: { name: string; description: string; color: string }
@@ -84,9 +85,11 @@ export const CreateStageForm = React.memo(function CreateStageForm({
       </div>
       <DialogFooter className="flex justify-end gap-2">
         <Button variant="outline" onClick={onCancel} disabled={isLoading}>
+          <X />
           Cancelar
         </Button>
         <Button onClick={onConfirm} isLoading={isLoading}>
+          <Save />
           Guardar
         </Button>
       </DialogFooter>

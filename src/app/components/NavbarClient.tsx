@@ -26,11 +26,6 @@ interface Props {
 export default function NavbarClient({ onMenuToggle, user }: Props) {
   return (
     <header className="flex items-center justify-between px-6 py-3 border-b bg-white">
-
-      {/* Título en desktop */}
-      <h1 className="hidden md:block text-lg font-semibold text-gray-800">
-        Sistema de Veterinarias
-      </h1>
       <div className="flex-1" />
 
       {/* Área de usuario */}

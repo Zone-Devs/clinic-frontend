@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Menu } from 'lucide-react'
+import { LayoutDashboard, Menu, ShieldUser, Workflow } from 'lucide-react'
 import {
   Sheet,
   SheetTrigger,
@@ -13,6 +13,9 @@ import {
 } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import SidebarContent from './SidebarContent'
+
+const mobileDashboardClass = "block rounded-md px-3 py-2 transition flex items-center"
+const dashboardIconClass = "w-5 h-5 mr-2"
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false)
@@ -44,18 +47,21 @@ export default function Sidebar() {
           <ScrollArea className="h-[calc(100vh-56px)] px-4 py-6">
             <nav className="space-y-2">
               <SheetClose asChild>
-                <Link href="/dashboard" className="block rounded-md px-3 py-2 transition">
+                <Link href="/dashboard" className={mobileDashboardClass}>
+                  <LayoutDashboard className={dashboardIconClass} />
                   Dashboard
                 </Link>
               </SheetClose>
               <SheetClose asChild>
-                <Link href="/roles" className="block rounded-md px-3 py-2 transition">
+                <Link href="/roles" className={mobileDashboardClass}>
+                  <ShieldUser className={dashboardIconClass} />
                   Roles y permisos
                 </Link>
               </SheetClose>
               <SheetClose asChild>
-                <Link href="/stages" className="block rounded-md px-3 py-2 transition">
-                  Stages
+                <Link href="/stages" className={mobileDashboardClass}>
+                  <Workflow className={dashboardIconClass} />
+                  Flujo de trabajo
                 </Link>
               </SheetClose>
               {/* … más enlaces … */}

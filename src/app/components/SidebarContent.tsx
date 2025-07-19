@@ -1,8 +1,10 @@
 'use client'
 
+import { LayoutDashboard, ShieldUser, Workflow } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+const dashboardIconClass = "w-5 h-5 mr-2"
 export default function SidebarContent() {
   const pathname = usePathname()
 
@@ -20,14 +22,17 @@ export default function SidebarContent() {
 
   return (
     <nav className="space-y-2">
-      <Link href="/dashboard" className={linkClasses('/dashboard')}>
+      <Link href="/dashboard" className={`${linkClasses('/dashboard')} flex items-center`}>
+        <LayoutDashboard className={dashboardIconClass} />
         Dashboard
       </Link>
-      <Link href="/roles" className={linkClasses('/roles')}>
+      <Link href="/roles" className={`${linkClasses('/roles')} flex items-center`}>
+        <ShieldUser className={dashboardIconClass} />
         Roles y permisos
       </Link>
-      <Link href="/stages" className={linkClasses('/stages')}>
-        Stages
+      <Link href="/stages" className={`${linkClasses('/stages')} flex items-center`}>
+        <Workflow className={dashboardIconClass} />
+        Flujo de trabajo
       </Link>
       {/* … más enlaces … */}
     </nav>
