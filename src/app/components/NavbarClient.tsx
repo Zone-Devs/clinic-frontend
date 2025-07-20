@@ -24,6 +24,7 @@ interface Props {
 }
 
 export default function NavbarClient({ onMenuToggle, user }: Props) {
+  console.log('🚬 ===> NavbarClient ===> user:', user);
   return (
     <header className="flex items-center justify-between px-6 py-3 border-b bg-white">
       <div className="flex-1" />
@@ -34,13 +35,11 @@ export default function NavbarClient({ onMenuToggle, user }: Props) {
         {/* Avatar + Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Avatar className="cursor-pointer">
+            <Avatar className="cursor-pointer bg-primary">
               {user?.avatarUrl ? (
                 <AvatarImage src={user.avatarUrl} alt={user.email} />
               ) : (
-                <AvatarFallback>
-                  {user?.email?.[0].toUpperCase()}
-                </AvatarFallback>
+                <AvatarFallback className='bg-primary' />
               )}
             </Avatar>
           </DropdownMenuTrigger>
