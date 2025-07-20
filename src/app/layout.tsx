@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import 'react-toastify/dist/ReactToastify.css'
+import { UserProvider } from '@/context/UserContext'
 import { ToastContainer } from 'react-toastify'
 
 export const metadata: Metadata = {
@@ -16,11 +17,13 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
-        {children}
-        <ToastContainer
-          position="top-center"
-          autoClose={1500}
-        />
+        <UserProvider>
+          {children}
+          <ToastContainer
+            position="top-center"
+            autoClose={1500}
+          />
+        </UserProvider>
       </body>
     </html>
   )

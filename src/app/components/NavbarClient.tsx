@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { LogoutButton } from './LogoutButton'
+import { useUser } from '@/context/UserContext'
 
 interface Props {
   onMenuToggle?: () => void
@@ -23,23 +24,22 @@ interface Props {
   }
 }
 
-export default function NavbarClient({ onMenuToggle, user }: Props) {
-  console.log('🚬 ===> NavbarClient ===> user:', user);
+export default function NavbarClient({ onMenuToggle }: Props) {
+  const { user } = useUser()
   return (
     <header className="flex items-center justify-between px-6 py-3 border-b bg-white">
       <div className="flex-1" />
-
       {/* Área de usuario */}
       <div className="flex items-right space-x-4">
 
         {/* Avatar + Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Avatar className="cursor-pointer bg-primary">
-              {user?.avatarUrl ? (
-                <AvatarImage src={user.avatarUrl} alt={user.email} />
+            <Avatar className="cursor-pointer">
+              {user?.fullName ? (
+                <AvatarImage alt={user.email} />
               ) : (
-                <AvatarFallback className='bg-primary' />
+                <AvatarFallback>{user?.firstName.charAt(0)}</AvatarFallback>
               )}
             </Avatar>
           </DropdownMenuTrigger>

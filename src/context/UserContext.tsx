@@ -2,15 +2,15 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
 
 export interface User {
-  id: string
-  email: string
+  id?: string
+  email?: string
   firstName: string
   lastName: string
-  fullName: string
-  role: string
-  gender: string
-  needUpdatePassword: boolean
-  token: string
+  fullName?: string
+  role?: string
+  gender?: string
+  needUpdatePassword?: boolean
+  token?: string
 }
 
 interface Context {

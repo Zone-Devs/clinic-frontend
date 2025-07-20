@@ -6,6 +6,7 @@ import * as z from 'zod'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-toastify'
 import axiosClient from '@/utils/axiosClient'
+import { useUser } from '@/context/UserContext'
 
 import {
   Form, FormField, FormItem, FormLabel, FormControl, FormMessage
@@ -26,6 +27,7 @@ export default function LoginForm() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { setUser } = useUser();
 
   const form = useForm<LoginFormValues>({
     resolver:    zodResolver(loginSchema),
@@ -50,6 +52,12 @@ async function onSubmit(values: LoginFormValues) {
         Intente más tarde nuevamente`)
       return
     }
+    const { data } = res;
+    
+    setUser({
+      firstName: data.firstName,
+      lastName: data.lastName
+    })
 
     router.replace('/dashboard')
 
