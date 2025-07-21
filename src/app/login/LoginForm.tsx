@@ -48,15 +48,15 @@ async function onSubmit(values: LoginFormValues) {
       return
     }
     if (res.status !== 200) {
-      toast.error(`Error en el servidor.
-        Intente más tarde nuevamente`)
+      toast.error(`Error interno en el servidor`)
       return
     }
     const { data } = res;
     
     setUser({
       firstName: data.firstName,
-      lastName: data.lastName
+      lastName: data.lastName,
+      email: data.email
     })
 
     router.replace('/dashboard')

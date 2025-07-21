@@ -1,4 +1,3 @@
-// components/LogoutButton.tsx
 'use client'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -10,7 +9,7 @@ export function LogoutButton() {
   const handleLogout = async () => {
     await fetch('/api/logout', {
       method: 'POST',
-      credentials: 'include',   // ← importante para enviar la cookie
+      credentials: 'include',
     })
     router.replace('/login')
   }

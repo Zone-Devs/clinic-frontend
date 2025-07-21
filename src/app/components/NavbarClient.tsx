@@ -13,19 +13,17 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { LogoutButton } from './LogoutButton'
+import { ProfileComponent } from './ProfileComponent'
 import { useUser } from '@/context/UserContext'
+import { useState } from 'react'
 
 interface Props {
   onMenuToggle?: () => void
-  user: {
-    id: string
-    email?: string
-    avatarUrl?: string
-  }
 }
 
-export default function NavbarClient({ onMenuToggle }: Props) {
+export default function NavbarClient() {
   const { user } = useUser()
+
   return (
     <header className="flex items-center justify-between px-6 py-3 border-b bg-white">
       <div className="flex-1" />
@@ -44,13 +42,11 @@ export default function NavbarClient({ onMenuToggle }: Props) {
             </Avatar>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuItem asChild>
-              <Link href="/profile" className="flex items-center gap-2 px-2 py-1">
-                Perfil
-              </Link>
+              <ProfileComponent/>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
+            <DropdownMenuItem>
               <LogoutButton />
             </DropdownMenuItem>
           </DropdownMenuContent>

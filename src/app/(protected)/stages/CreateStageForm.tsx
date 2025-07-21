@@ -76,7 +76,7 @@ export const CreateStageForm = React.memo(function CreateStageForm({
               appearance-none
               cursor-pointer
             "
-            value={formValues.color}
+            value={formValues.color || "#000000"}
             onChange={e =>
               setFormValues((f: StageFormValues) => ({ ...f, color: e.target.value }))
             }

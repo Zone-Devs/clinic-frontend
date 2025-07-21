@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   // TODO: Set additional parametes to return on Login
   const { token, firstName, lastName } = await backendRes.json()
 
-  const res = NextResponse.json({ firstName, lastName })
+  const res = NextResponse.json({ firstName, lastName, email })
   res.cookies.set('token', token, {
     httpOnly: true,
     path:     '/',

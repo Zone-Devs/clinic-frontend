@@ -28,7 +28,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { Blocks, SendToBack, Trash2, X } from 'lucide-react'
+import { Blocks, Save, SendToBack, Trash2, X } from 'lucide-react'
 import { CreateStageForm } from './CreateStageForm'
 import { EditStageForm } from './EditStageForm'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -135,7 +135,7 @@ export default function StageContainer() {
         {
           name:        formValues.name,
           description: formValues.description,
-          color:       formValues.color || "#000000",
+          color:       formValues.color,
         }
       )
       setStages((prev) =>
@@ -348,6 +348,7 @@ export default function StageContainer() {
             className="px-3 py-2 rounded border border-gray-300 bg-primary text-primary-foreground cursor-pointer"
             isLoading={isSubmitting}
           >
+            <Save />
             Guardar cambios
           </Button>
         )}
