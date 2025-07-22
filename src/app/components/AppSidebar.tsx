@@ -14,7 +14,7 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
-import { LayoutDashboard, ShieldUser, Workflow, Cog, ChevronDown } from 'lucide-react'
+import { LayoutDashboard, ShieldUser, Workflow, Tag, Cog, ChevronDown } from 'lucide-react'
 
 const iconClass = 'w-4 h-4 mr-2 ml-2'
 
@@ -32,6 +32,7 @@ const sections = [
     items: [
       // { href: '/roles', label: 'Roles y permisos', icon: ShieldUser },
       { href: '/stages', label: 'Flujo de trabajo', icon: Workflow },
+      { href: '/categories', label: 'Categorías de equipos', icon: Tag },
     ],
   },
   // aquí podrás añadir más secciones similares:
@@ -103,7 +104,7 @@ export default function AppSidebar() {
                     className="
                       group
                       flex items-center
-                      px-2 py-2
+                      px-2 pt-2 pb-3
                       transition
                       cursor-pointer
                     "
