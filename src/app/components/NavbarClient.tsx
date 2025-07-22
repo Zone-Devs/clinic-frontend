@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import {
   Avatar,
   AvatarFallback,
@@ -15,19 +14,17 @@ import {
 import { LogoutButton } from './LogoutButton'
 import { ProfileComponent } from './ProfileComponent'
 import { useUser } from '@/context/UserContext'
-import { useState } from 'react'
 
 interface Props {
-  onMenuToggle?: () => void
+  onHamburgerClick: () => void
 }
 
 export default function NavbarClient() {
   const { user } = useUser()
 
   return (
-    <header className="flex items-center justify-between px-6 py-3 border-b bg-white">
+    <header className="flex items-center justify-between px-6 py-3 border-b border-gray-200">
       <div className="flex-1" />
-      {/* Área de usuario */}
       <div className="flex items-right space-x-4">
 
         {/* Avatar + Dropdown */}

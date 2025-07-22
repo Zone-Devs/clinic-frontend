@@ -215,6 +215,12 @@ export default function StageContainer() {
 
   return (
     <>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">Flujo de trabajo</h1>
+        <p className="text-gray-500 text-sm">
+          Aquí puedes ver, añadir y reordenar las etapas de tu flujo de trabajo.
+        </p>
+      </div>
       {/* Controles */}
       <div className="flex justify-end gap-2 mb-4">
         {!sortingEnabled && <Button
@@ -223,6 +229,7 @@ export default function StageContainer() {
             setShowCreateModal(true)
           }}
           className='bg-primary text-primary-foreground hover:bg-gray-700 hover:text-gray-100'
+          size="sm"
         >
           <Blocks />
           Añadir etapa
@@ -239,6 +246,7 @@ export default function StageContainer() {
             setSortingEnabled((e) => !e)
             setHasChanges(false)
           }}
+          size="sm"
           className={`
             cursor-pointer
             ${sortingEnabled ? 'bg-red-500/100 text-primary-foreground hover:bg-red-400 hover:text-gray-100' : 'bg-primary text-primary-foreground hover:bg-gray-700 hover:text-gray-100'}
@@ -345,7 +353,8 @@ export default function StageContainer() {
         {hasChanges && (
           <Button
             onClick={handleSaveOrder}
-            className="px-3 py-2 rounded border border-gray-300 bg-primary text-primary-foreground cursor-pointer"
+            className="px-3 py-2 rounded-md border border-gray-300 bg-primary text-primary-foreground cursor-pointer"
+            size="sm"
             isLoading={isSubmitting}
           >
             <Save />
@@ -369,7 +378,7 @@ export default function StageContainer() {
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div className="bg-gray-100 p-4 rounded-lg">
           <SortableContext
             items={stages.map((s) => s.id)}
             strategy={verticalListSortingStrategy}

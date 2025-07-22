@@ -19,6 +19,7 @@ import { LayoutDashboard, ShieldUser, Workflow, Cog, ChevronDown } from 'lucide-
 
 const iconClass = 'w-4 h-4 mr-2 ml-2'
 
+
 const mainNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ]
@@ -52,99 +53,99 @@ export default function AppSidebar() {
       ? pathname === href
       : pathname.startsWith(href)
 
-  // Handler genérico para cerrar cualquier sección abierta
   const closeSections = () => setOpenSection(null)
 
   return (
-    <Sidebar className="h-full w-66 shrink-0 overflow-x-hidden">
-      <SidebarHeader className="px-4 py-4 text-lg font-bold">
-        Zonedevs
-      </SidebarHeader>
-
-      <SidebarContent className="overflow-x-hidden">
-        {/* Enlaces planos */}
-        <SidebarMenu>
-          {mainNav.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive(item.href)}
-                onClick={closeSections}
-              >
-                <Link
-                  href={item.href}
-                  className="flex items-center px-4 py-2 rounded-md transition hover:bg-accent hover:text-accent-foreground"
+  <>
+      {/* ─── DRAWER DESKTOP ─── */}
+      <Sidebar className="h-full w-72 overflow-x-hidden">
+        <SidebarHeader className="px-4 pt-3 pb-8 text-xl font-bold">
+          Zonedevs
+        </SidebarHeader>
+        <SidebarContent className="overflow-x-hidden">
+          {/* Enlaces planos */}
+          <SidebarMenu>
+            {mainNav.map((item) => (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive(item.href)}
+                  onClick={closeSections}
                 >
-                  <item.icon className={iconClass} />
-                  {item.label}
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+                  <Link
+                    href={item.href}
+                    className="flex items-center px-4 py-2 transition hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <item.icon className={iconClass} />
+                    {item.label}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
 
-        {/* Secciones colapsables */}
-        {sections.map((sec) => (
-          <SidebarMenu key={sec.id}>
-            <Collapsible
-              open={openSection === sec.id}
-              onOpenChange={(open) =>
-                setOpenSection(open ? sec.id : null)
-              }
-              className="group/collapsible"
-            >
-              {/* Trigger */}
-              <SidebarMenuItem>
-                <CollapsibleTrigger asChild>
+          {/* Secciones colapsables */}
+          {sections.map((sec) => (
+            <SidebarMenu key={sec.id}>
+              <Collapsible
+                open={openSection === sec.id}
+                onOpenChange={(open) =>
+                  setOpenSection(open ? sec.id : null)
+                }
+                className="group/collapsible"
+              >
+                {/* Trigger */}
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     className="
+                      group
                       flex items-center
                       px-4 py-2
-                      rounded-md
                       transition
                       hover:bg-accent hover:text-accent-foreground
                     "
                   >
-                    <sec.icon className={iconClass} />
-                    {sec.title}
-                    <ChevronDown
-                      className="
-                        w-4 h-4
-                        transition-transform duration-200
-                        data-[state=open]:rotate-180
-                      "
-                    />
-                  </SidebarMenuButton>
-                </CollapsibleTrigger>
-              </SidebarMenuItem>
-
-              {/* Sub-items */}
-              <CollapsibleContent>
-                {sec.items.map((item) => (
-                  <SidebarMenuSub key={item.href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive(item.href)}
-                    >
-                      <Link
-                        href={item.href}
-                        className="flex items-center px-4 py-2 rounded-md transition hover:bg-accent hover:text-accent-foreground"
-                      >
-                        <item.icon className={iconClass} />
-                        {item.label}
-                      </Link>
+                      <sec.icon className={iconClass} />
+                      {sec.title}
+                      <ChevronDown
+                        className="
+                          w-4 h-4 ml-2
+                          transition-transform duration-200
+                          group-data-[state=open]:rotate-180
+                        "
+                      />
                     </SidebarMenuButton>
-                  </SidebarMenuSub>
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
-          </SidebarMenu>
-        ))}
-      </SidebarContent>
+                  </CollapsibleTrigger>
+                </SidebarMenuItem>
 
-      <SidebarFooter className="px-4 py-2 text-xs text-muted-foreground">
-        © 2025 Zonedevs
-      </SidebarFooter>
-    </Sidebar>
+                {/* Sub-items */}
+                <CollapsibleContent>
+                  {sec.items.map((item) => (
+                    <SidebarMenuSub key={item.href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.href)}
+                      >
+                        <Link
+                          href={item.href}
+                          className="flex items-center px-4 py-2 transition hover:bg-accent hover:text-accent-foreground"
+                        >
+                          <item.icon className={iconClass} />
+                          {item.label}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuSub>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            </SidebarMenu>
+          ))}
+        </SidebarContent>
+        <SidebarFooter className="px-4 py-2 text-xs text-muted-foreground">
+          © 2025 Zonedevs
+        </SidebarFooter>
+      </Sidebar>
+  </>
   )
 }
