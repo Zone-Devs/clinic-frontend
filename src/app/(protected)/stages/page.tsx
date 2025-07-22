@@ -9,7 +9,12 @@ export default async function RolesPage() {
 
   return (
     <main className="p-6">
-      {/* <h1 className="text-2xl font-semibold mb-4">Flujo de trabajo</h1> */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">Flujo de trabajo</h1>
+        <p className="text-gray-500 text-sm">
+          Sección donde puedes ver, añadir y reordenar las etapas de tu flujo de trabajo.
+        </p>
+      </div>
       <StagesContainer />
     </main>
   )

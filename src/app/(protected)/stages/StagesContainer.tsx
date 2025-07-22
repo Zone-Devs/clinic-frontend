@@ -28,7 +28,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { Blocks, Save, SendToBack, Trash2, X } from 'lucide-react'
+import { Plus, Save, SendToBack, Trash2, X } from 'lucide-react'
 import { CreateStageForm } from './CreateStageForm'
 import { EditStageForm } from './EditStageForm'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -215,12 +215,6 @@ export default function StageContainer() {
 
   return (
     <>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Flujo de trabajo</h1>
-        <p className="text-gray-500 text-sm">
-          Aquí puedes ver, añadir y reordenar las etapas de tu flujo de trabajo.
-        </p>
-      </div>
       {/* Controles */}
       <div className="flex justify-end gap-2 mb-4">
         {!sortingEnabled && <Button
@@ -231,7 +225,7 @@ export default function StageContainer() {
           className='bg-primary text-primary-foreground hover:bg-gray-700 hover:text-gray-100'
           size="sm"
         >
-          <Blocks />
+          <Plus />
           Añadir etapa
         </Button>}
         <Button

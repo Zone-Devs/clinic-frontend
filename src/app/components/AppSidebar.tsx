@@ -1,4 +1,3 @@
-// components/AppSidebar.tsx
 'use client'
 
 import { useState } from 'react'
@@ -31,7 +30,7 @@ const sections = [
     title: 'Administración del sistema',
     icon: Cog,
     items: [
-      { href: '/roles', label: 'Roles y permisos', icon: ShieldUser },
+      // { href: '/roles', label: 'Roles y permisos', icon: ShieldUser },
       { href: '/stages', label: 'Flujo de trabajo', icon: Workflow },
     ],
   },
@@ -67,19 +66,21 @@ export default function AppSidebar() {
           <SidebarMenu>
             {mainNav.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive(item.href)}
-                  onClick={closeSections}
-                >
+                <div className="px-3">
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.href)}
+                    onClick={closeSections}
+                  >
                   <Link
                     href={item.href}
-                    className="flex items-center px-4 py-2 transition hover:bg-accent hover:text-accent-foreground"
+                    className="w-full flex items-center py-2 transition"
                   >
                     <item.icon className={iconClass} />
                     {item.label}
                   </Link>
                 </SidebarMenuButton>
+                </div>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
@@ -97,13 +98,14 @@ export default function AppSidebar() {
                 {/* Trigger */}
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
+                  <div className="px-3">
                   <SidebarMenuButton
                     className="
                       group
                       flex items-center
-                      px-4 py-2
+                      px-2 py-2
                       transition
-                      hover:bg-accent hover:text-accent-foreground
+                      cursor-pointer
                     "
                   >
                       <sec.icon className={iconClass} />
@@ -115,7 +117,8 @@ export default function AppSidebar() {
                           group-data-[state=open]:rotate-180
                         "
                       />
-                    </SidebarMenuButton>
+                  </SidebarMenuButton>
+                  </div>
                   </CollapsibleTrigger>
                 </SidebarMenuItem>
 
@@ -129,7 +132,7 @@ export default function AppSidebar() {
                       >
                         <Link
                           href={item.href}
-                          className="flex items-center px-4 py-2 transition hover:bg-accent hover:text-accent-foreground"
+                          className="flex items-center px-4 py-2 transition"
                         >
                           <item.icon className={iconClass} />
                           {item.label}

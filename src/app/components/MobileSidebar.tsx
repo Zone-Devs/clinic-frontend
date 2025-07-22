@@ -23,7 +23,7 @@ const sections = [
     title: 'Administración del sistema',
     Icon: Cog,
     items: [
-      { href: '/roles', label: 'Roles y permisos', Icon: ShieldUser },
+      // { href: '/roles', label: 'Roles y permisos', Icon: ShieldUser },
       { href: '/stages', label: 'Flujo de trabajo', Icon: Workflow },
     ],
   },
