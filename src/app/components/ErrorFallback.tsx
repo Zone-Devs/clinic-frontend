@@ -1,9 +1,9 @@
-// app/components/ErrorFallback.tsx
 'use client'
 
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import errorIllustration from '/public/images/500.webp'
 
 interface ErrorFallbackProps {
   title?: string
@@ -12,18 +12,26 @@ interface ErrorFallbackProps {
 }
 
 export default function ErrorFallback({
-  title = 'Algo salió mal',
-  description = 'Error Interno en el servidor',
+  title = 'Algo salió mal…',
+  description = 'Error interno en el servidor. Contacte a su administrador',
   retryText = 'Reintentar',
 }: ErrorFallbackProps) {
   const router = useRouter()
 
   return (
-    <div className="flex flex-col items-center justify-center p-6 space-y-4 text-center">
-      <AlertCircle className="w-12 h-12 text-red-500" />
-      <h2 className="text-xl font-semibold">{title}</h2>
+    <div className="w-full text-center space-y-6 px-4">
+      <div className="w-48 h-48 mx-auto">
+        <Image
+          src={errorIllustration}
+          alt="Ilustración de error"
+          width={192}
+          height={192}
+          priority
+        />
+      </div>
+      <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
       <p className="text-sm text-gray-600">{description}</p>
-      <Button onClick={() => router.refresh()} variant="outline">
+      <Button variant="outline" onClick={() => router.refresh()}>
         {retryText}
       </Button>
     </div>

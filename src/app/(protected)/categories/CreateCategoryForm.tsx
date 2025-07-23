@@ -1,49 +1,80 @@
 // src/app/(protected)/categories/CreateCategoryForm.tsx
 'use client'
 
-import { useState, FormEvent } from 'react'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import {
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 
 interface Props {
   onConfirm: (data: { name: string; description: string }) => void
   onCancel: () => void
+  isLoading?: boolean
 }
 
-export function CreateCategoryForm({ onConfirm, onCancel }: Props) {
+export const CreateCategoryForm = React.memo(function CreateCategoryForm({
+  onConfirm,
+  onCancel,
+  isLoading = false,
+}: Props) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    onConfirm({ name, description })
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium">Nombre</label>
-        <input
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border px-2 py-1 rounded"
-        />
+    <>
+      <DialogHeader>
+        <DialogTitle>Crear nueva categoría</DialogTitle>
+        <DialogDescription>
+          Introduce un nombre y una descripción para tu categoría.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="grid gap-4 py-2">
+        <label className="block">
+          <span className="text-sm font-medium">Nombre</span>
+          <input
+            type="text"
+            required
+            className="mt-1 block w-full rounded border px-3 py-2"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ej. Electrodomésticos"
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium">Descripción</span>
+          <textarea
+            required
+            className="mt-1 block w-full rounded border px-3 py-2"
+            rows={3}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Una breve descripción de la categoría"
+          />
+        </label>
       </div>
-      <div>
-        <label className="block text-sm font-medium">Descripción</label>
-        <textarea
-          required
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full border px-2 py-1 rounded"
-        />
-      </div>
-      <div className="flex justify-end space-x-2">
-        <Button variant="outline" onClick={onCancel}>
+
+      <DialogFooter className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          onClick={onCancel}
+          disabled={isLoading}
+        >
           Cancelar
         </Button>
-        <Button type="submit">Crear</Button>
-      </div>
-    </form>
+        <Button
+          onClick={() => onConfirm({ name: name.trim(), description: description.trim() })}
+          isLoading={isLoading}
+          disabled={!name.trim() || !description.trim()}
+        >
+          Crear
+        </Button>
+      </DialogFooter>
+    </>
   )
-}
+})

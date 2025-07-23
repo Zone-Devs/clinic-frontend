@@ -2,6 +2,7 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { CategoryManager } from './CategoryManager'
+import ErrorFallback from '@/app/components/ErrorFallback'
 
 const serverURL = process.env.BACKEND_URL || 'http://localhost:3000'
 export default async function CategoriesPage() {
@@ -13,14 +14,12 @@ export default async function CategoriesPage() {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
     })
-    categories = await res.json()    
+    const json = await res.json()
+    categories = Array.isArray(json) ? json : json.data
   } catch (err: any) {
-        return (
+      return (
       <main className="p-6">
-        <h1 className="text-xl font-bold text-red-600">Error interno en el servidor</h1>
-        <p className="text-red-500">
-          No se pudieron cargar las categorías. Intente más tarde.
-        </p>
+        <ErrorFallback />
       </main>
     )
   }

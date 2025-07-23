@@ -67,11 +67,14 @@ async function onSubmit(values: LoginFormValues) {
 }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg px-4">
+    <div className="flex items-center justify-center bg-bg px-4">
       <div className="w-full max-w-md bg-surface p-8 rounded-xl shadow-lg">
-        <h2 className="text-center text-3xl font-bold text-primary mb-6">
-          Bienvenido
+        <div className="flex-columns items-center justify-center px-4">
+        <h2 className="text-center text-3xl font-bold text-primary">
+          Trazability
         </h2>
+        <p className='text-center text-sm text-gray-500 mb-4'>By Zonedevs</p>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             {/* Email */}

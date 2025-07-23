@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Sheet, SheetTrigger, SheetContent, SheetClose, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
-import { Menu, X, LayoutDashboard, ShieldUser, Workflow, Cog, ChevronDown } from 'lucide-react'
+import { Menu, X, LayoutDashboard, ShieldUser, Workflow, Cog, ChevronDown, Tag } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import Link from 'next/link'
 
@@ -24,7 +24,8 @@ const sections = [
     Icon: Cog,
     items: [
       // { href: '/roles', label: 'Roles y permisos', Icon: ShieldUser },
-      { href: '/stages', label: 'Flujo de trabajo', Icon: Workflow },
+      { href: '/stages', label: 'Flujo de trabajo', icon: Workflow },
+      { href: '/categories', label: 'Categorías de equipos', icon: Tag },
     ],
   },
 ]
@@ -94,7 +95,7 @@ export function MobileSidebar() {
                 </CollapsibleTrigger>
 
                 <CollapsibleContent className="space-y-1 pl-6">
-                  {items.map(({ href, label, Icon }) => (
+                  {items.map(({ href, label, icon: Icon }) => (
                     <SheetClose asChild key={href}>
                       <Link href={href} className={linkClass(href)}>
                         <Icon className={iconClass} />

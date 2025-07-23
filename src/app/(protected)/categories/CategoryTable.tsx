@@ -3,13 +3,16 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash } from 'lucide-react'
-import ErrorFallback from '@/app/components/ErrorFallback'
 import NoDataFallback from '@/app/components/NoDataFallback'
 
 export interface Category {
   id: string
   name: string
   description: string
+  createdAt?: any
+  createdLocalTime?: any
+  updatedAt?: any
+  updatedLocalTime?: any
 }
 
 interface CategoryTableProps {
@@ -19,6 +22,7 @@ interface CategoryTableProps {
 }
 
 export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
+  console.log('🚬 ===> :22 ===> CategoryTable ===> data:', data);
   return (
     <div className="overflow-auto">
       {data.length > 0 ? <Table>
@@ -38,14 +42,14 @@ export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
                 <div className="inline-flex items-center space-x-2">
                   <Button
                     size="sm"
-                    variant="outline"
+                    variant="ghost"
                     onClick={() => onEdit(cat)}
                   >
                     <Pencil className="w-4 h-4" />
                   </Button>
                   <Button
                     size="sm"
-                    variant="destructive"
+                    variant="ghost"
                     onClick={() => onDelete(cat.id)}
                   >
                     <Trash className="w-4 h-4" />

@@ -44,9 +44,15 @@ interface Stage {
   updatedAt: string
 }
 
-export default function StageContainer() {
-  const [stages, setStages] = useState<Stage[]>([])
-  const [loadingStages, setLoadingStages] = useState(true)
+interface Props {
+  initialStages: Stage[]
+}
+
+export default function StageContainer({ initialStages }: Props) {
+  const [stages, setStages] = useState<Stage[]>(
+    initialStages.sort((a, b) => a.orderNumber - b.orderNumber)
+  )
+  const [loadingStages, setLoadingStages] = useState(false)
   const [originalStages, setOriginalStages] = useState<Stage[]>([])
   const [showDiscardDialog, setShowDiscardDialog] = useState(false)
   const [sortingEnabled, setSortingEnabled] = useState(false)
@@ -73,22 +79,6 @@ export default function StageContainer() {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor,   { activationConstraint: { distance: 5 } })
   )
-
-  useEffect(() => {
-    setLoadingStages(true)
-    axiosClient
-      .get<Stage[]>('/api/stages')
-      .then((res) => {
-        setStages(res.data.sort((a, b) => a.orderNumber - b.orderNumber))
-      })
-      .catch((err) => {
-        console.error('Error fetching stages:', err)
-        toast.error('No se pudieron cargar las etapas')
-      })
-      .finally(() => {
-        setLoadingStages(false)
-      })
-  }, [])
 
   function handleDragEnd(event: DragEndEvent) {
     if (!sortingEnabled) return

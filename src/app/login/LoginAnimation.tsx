@@ -8,12 +8,11 @@ export default function LoginAnimation() {
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 30 }}
       transition={{ duration: 0.4 }}
-      className="absolute top-26 left-1/2 -translate-x-1/2"
-      style={{ width: 192, height: 192, pointerEvents: 'none', zIndex: 10 }}
+      className="w-46 h-46"
     >
-      <Lottie animationData={loginAnimation} loop autoplay />
+      <Lottie animationData={loginAnimation} loop={true} autoplay={true} />
     </motion.div>
   )
 }
