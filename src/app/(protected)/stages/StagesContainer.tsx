@@ -32,6 +32,7 @@ import { Plus, Save, SendToBack, Trash2, X } from 'lucide-react'
 import { CreateStageForm } from './CreateStageForm'
 import { EditStageForm } from './EditStageForm'
 import { Skeleton } from '@/components/ui/skeleton'
+import NoDataFallback from '@/app/components/NoDataFallback'
 
 interface Stage {
   id: string
@@ -365,7 +366,7 @@ export default function StageContainer() {
           ))}
         </div>
       ) : stages.length === 0 ? (
-        <p className="text-center text-gray-500">No se encontraron etapas.</p>
+        <NoDataFallback type="etapa"/>
       ) : (
       <DndContext
         sensors={sensors}

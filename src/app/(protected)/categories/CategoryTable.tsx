@@ -3,6 +3,8 @@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash } from 'lucide-react'
+import ErrorFallback from '@/app/components/ErrorFallback'
+import NoDataFallback from '@/app/components/NoDataFallback'
 
 export interface Category {
   id: string
@@ -18,8 +20,8 @@ interface CategoryTableProps {
 
 export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
   return (
-    <div className="overflow-auto rounded-lg border">
-      <Table>
+    <div className="overflow-auto">
+      {data.length > 0 ? <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Nombre</TableHead>
@@ -53,7 +55,7 @@ export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+      </Table> : <NoDataFallback type="categoría" needsCreateLabel={true}/>}
     </div>
   )
 }
