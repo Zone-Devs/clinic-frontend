@@ -4,6 +4,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash } from 'lucide-react'
 import NoDataFallback from '@/app/components/NoDataFallback'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export interface Category {
   id: string
@@ -40,13 +41,22 @@ export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
               <TableCell>{cat.description}</TableCell>
               <TableCell className="text-right">
                 <div className="inline-flex items-center space-x-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => onEdit(cat)}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
+                  <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onEdit(cat)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Editar</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                <TooltipTrigger asChild>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -54,6 +64,11 @@ export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
                   >
                     <Trash className="w-4 h-4" />
                   </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Eliminar</p>
+                </TooltipContent>
+              </Tooltip>
                 </div>
               </TableCell>
             </TableRow>

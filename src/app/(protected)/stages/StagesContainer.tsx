@@ -28,7 +28,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { Plus, Save, SendToBack, Trash2, X } from 'lucide-react'
+import { Plus, Save, SendToBack, Trash, X } from 'lucide-react'
 import { CreateStageForm } from './CreateStageForm'
 import { EditStageForm } from './EditStageForm'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -311,7 +311,7 @@ export default function StageContainer({ initialStages }: Props) {
                onClick={confirmDelete}
                isLoading={isDeleting}
              >
-              {!isDeleting && <Trash2 />}
+              {!isDeleting && <Trash />}
                Eliminar
              </Button>
            </DialogFooter>

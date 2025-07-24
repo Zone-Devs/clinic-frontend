@@ -15,6 +15,9 @@ export default async function ProtectedLayout({
     redirect('/login')
   }
 
-  // Si hay, renderiza tu layout cliente con navbar + sidebar
-  return <ClientRootLayout>{children}</ClientRootLayout>
+  return (
+    <ClientRootLayout>
+      {children}
+      </ClientRootLayout>
+  )
 }
