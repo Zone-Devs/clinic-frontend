@@ -1,51 +1,95 @@
 // src/app/(protected)/categories/EditCategoryForm.tsx
 'use client'
 
-import { useState, FormEvent } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Category } from './CategoryManager'
+import {
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Category } from './CategoryTable'
 
 interface Props {
   category: Category
   onConfirm: (data: { name: string; description: string }) => void
   onCancel: () => void
+  isLoading?: boolean
 }
 
-export function EditCategoryForm({ category, onConfirm, onCancel }: Props) {
-  const [name, setName] = useState(category.name)
-  const [description, setDescription] = useState(category.description)
+export const EditCategoryForm = React.memo(function EditCategoryForm({
+  category,
+  onConfirm,
+  onCancel,
+  isLoading = false,
+}: Props) {
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    onConfirm({ name, description })
-  }
+  // Cuando cambie la categoría que llega por props,
+  // recargamos los campos para editar.
+  useEffect(() => {
+    setName(category.name)
+    setDescription(category.description)
+  }, [category])
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium">Nombre</label>
-        <input
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border px-2 py-1 rounded"
-        />
+    <>
+      <DialogHeader>
+        <DialogTitle>Editar categoría</DialogTitle>
+        <DialogDescription>
+          Modifica el nombre o la descripción de la categoría.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="grid gap-4 py-2">
+        <label className="block">
+          <span className="text-sm font-medium">Nombre</span>
+          <input
+            type="text"
+            required
+            className="mt-1 block w-full rounded border px-3 py-2"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ej. Sutura"
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium">Descripción</span>
+          <textarea
+            required
+            className="mt-1 block w-full rounded border px-3 py-2"
+            rows={3}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Una breve descripción de la categoría"
+          />
+        </label>
       </div>
-      <div>
-        <label className="block text-sm font-medium">Descripción</label>
-        <textarea
-          required
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full border px-2 py-1 rounded"
-        />
-      </div>
-      <div className="flex justify-end space-x-2">
-        <Button variant="outline" onClick={onCancel}>
+
+      <DialogFooter className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          onClick={onCancel}
+          disabled={isLoading}
+        >
           Cancelar
         </Button>
-        <Button type="submit">Guardar</Button>
-      </div>
-    </form>
+        <Button
+          onClick={() =>
+            onConfirm({
+              name: name.trim(),
+              description: description.trim(),
+            })
+          }
+          isLoading={isLoading}
+          disabled={!name.trim() || !description.trim()}
+        >
+          Guardar
+        </Button>
+      </DialogFooter>
+    </>
   )
-}
+})

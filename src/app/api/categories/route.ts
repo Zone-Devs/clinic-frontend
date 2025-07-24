@@ -1,4 +1,3 @@
-// src/app/api/stages/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 
 const BACKEND_URL = process.env.BACKEND_URL ?? 'http://localhost:3000'
@@ -31,7 +30,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(data, { status: backendRes.status })
 
   } catch (err) {
-    console.error('Error proxy /api/stages GET:', err)
+    console.error('Error proxy /api/categories GET:', err)
     return NextResponse.json({ message: serverErrorMsg }, { status: 500 })
   }
 }

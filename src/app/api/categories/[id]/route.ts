@@ -16,10 +16,10 @@ export async function DELETE(
         )
     }
     
-  const { id: stageId } = await params
+  const { id: categoryID } = await params
   try {
     const backendRes = await fetch(
-      `${BACKEND_URL}/api/stages/${encodeURIComponent(stageId)}`,
+      `${BACKEND_URL}/api/equipment-category/${encodeURIComponent(categoryID)}`,
       {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
@@ -31,7 +31,6 @@ export async function DELETE(
       return new NextResponse(null, { status: 204 })
     }
 
-    // lee el body sólo una vez
     const text = await backendRes.text()
     let msg = serverErrorMsg
     try {
@@ -46,7 +45,7 @@ export async function DELETE(
       { status: backendRes.status }
     )
   } catch (err) {
-    console.error('Error proxy DELETE /api/roles/[id]:', err)
+    console.error('Error proxy DELETE /api/categories/[id]:', err)
     return NextResponse.json(
       { message: serverErrorMsg },
       { status: 500 }
@@ -63,8 +62,9 @@ export async function PATCH(
     return NextResponse.json({ message: 'No autorizado' }, { status: 401 })
   }
 
-  const { id: stageId } = await params
-  let body: { name: string; description: string; color: string }
+  const { id: categoryID } = await params
+  let body: { name: string; description: string; }
+
   try {
     body = await req.json()
   } catch {
@@ -74,10 +74,9 @@ export async function PATCH(
     )
   }
 
-  // proxy al backend real…
   try {
     const backendRes = await fetch(
-      `${BACKEND_URL}/api/stages/${encodeURIComponent(stageId)}`,
+      `${BACKEND_URL}/api/equipment-category/${encodeURIComponent(categoryID)}`,
       {
         method: 'PATCH',
         headers: {
@@ -90,7 +89,6 @@ export async function PATCH(
 
     const text = await backendRes.text()
     if (backendRes.ok) {
-      // respondemos 200 con el JSON del backend (o null)
       try {
         return NextResponse.json(JSON.parse(text), { status: 200 })
       } catch {
@@ -107,7 +105,7 @@ export async function PATCH(
     }
     return NextResponse.json({ message: msg }, { status: backendRes.status })
   } catch (err) {
-    console.error('Error proxy PATCH /api/stages/[id]:', err)
+    console.error('Error proxy PATCH /api/categories/[id]:', err)
     return NextResponse.json({ message: serverErrorMsg }, { status: 500 })
   }
 }

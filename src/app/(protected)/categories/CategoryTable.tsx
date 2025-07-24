@@ -18,7 +18,7 @@ export interface Category {
 interface CategoryTableProps {
   data: Category[]
   onEdit: (category: Category) => void
-  onDelete: (id: string) => void
+  onDelete: (id: string, name: string) => void
 }
 
 export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
@@ -50,7 +50,7 @@ export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => onDelete(cat.id)}
+                    onClick={() => onDelete(cat.id, cat.name)}
                   >
                     <Trash className="w-4 h-4" />
                   </Button>

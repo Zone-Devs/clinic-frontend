@@ -4,11 +4,12 @@
 import { useState } from 'react'
 import { Category, CategoryTable } from './CategoryTable'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { CreateCategoryForm } from './CreateCategoryForm'
 import { EditCategoryForm } from './EditCategoryForm'
 import axiosClient from '@/utils/axiosClient'
 import { toast } from 'react-toastify'
+import { Plus } from 'lucide-react'
 
 interface CategoryManagerProps {
   initial: Category[]
@@ -24,15 +25,24 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
   const [editing, setEditing] = useState<Category | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
 
+  // — Eliminar
+  const [categoryToDelete, setCategoryToDelete] = useState<{
+    id: string
+    name: string
+  } | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
   // ========== CREATE ==========
   async function handleCreate(payload: Omit<Category, 'id'>) {
     setIsCreating(true)
     try {
-      const resp = await axiosClient.post<{ data: Category }>('/api/categories', payload)
-      console.log('🚬 ===> :33 ===> handleCreate ===> resp:', resp);
-      const nuevaCat = resp.data
-      console.log('🚬 ===> :35 ===> handleCreate ===> nuevaCat:', nuevaCat);
-      setCategories((prev) => [...prev, nuevaCat])
+      const resp = await axiosClient.post<Category>('/api/categories', payload)
+      const newCategory = resp.data
+      if (!newCategory) {
+        throw new Error('Error al crear categoría')
+      }
+      setCategories((prev) => [...prev, newCategory])
       toast.success('Categoría creada')
       setCreating(false)
     } catch {
@@ -46,10 +56,10 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
   async function handleEdit(id: string, payload: Omit<Category, 'id'>) {
     setIsUpdating(true)
     try {
-      const resp = await axiosClient.patch<{ data: Category }>(`/categories/${id}`, payload)
-      const updated = resp.data.data
+      const resp = await axiosClient.patch<Category>(`api/categories/${id}`, payload)
+      const updatedCategory = resp.data
       setCategories(prev =>
-        prev.map(c => (c.id === id ? updated : c))
+        prev.map(c => (c.id === id ? updatedCategory : c))
       )
       toast.success('Categoría actualizada')
       setEditing(null)
@@ -61,14 +71,29 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
   }
 
   // ========== DELETE ==========
-  async function handleDelete(id: string) {
-    if (!confirm('¿Seguro que deseas eliminar esta categoría?')) return
+  function initiateDelete(id: string, name: string) {
+    setCategoryToDelete({ id, name })
+    setShowDeleteDialog(true)
+  }
+
+  async function confirmDelete() {
+    if (!categoryToDelete) return
+    setIsDeleting(true)
     try {
-      await axiosClient.delete(`/categories/${id}`)
-      setCategories(prev => prev.filter(c => c.id !== id))
-      toast.success('Categoría eliminada')
+      await axiosClient.delete(
+        `/api/categories/${categoryToDelete.id}`
+      )
+      // actualizamos lista
+      setCategories(prev =>
+        prev.filter(c => c.id !== categoryToDelete.id)
+      )
+      toast.success(`Categoría "${categoryToDelete.name}" eliminada`)
     } catch {
       toast.error('Error al eliminar categoría')
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
+      setCategoryToDelete(null)
     }
   }
 
@@ -77,6 +102,7 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
       {/* Toolbar */}
       <div className="flex justify-end mb-4">
         <Button size="sm" onClick={() => setCreating(true)}>
+          <Plus />
           Crear categoría
         </Button>
       </div>
@@ -85,7 +111,7 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
       <CategoryTable
         data={categories}
         onEdit={cat => setEditing(cat)}
-        onDelete={handleDelete}
+        onDelete={(id, name) => initiateDelete(id, name)}
       />
 
       {/* ——— Crear categoría ——— */}
@@ -112,6 +138,42 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* ——— Diálogo de confirmación de borrado ——— */}
+      <Dialog
+        open={showDeleteDialog}
+        onOpenChange={open => {
+          if (!open) setCategoryToDelete(null)
+          setShowDeleteDialog(open)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Eliminar categoría</DialogTitle>
+            <DialogDescription>
+              ¿Seguro que deseas eliminar la categoría{' '}
+              <strong>{categoryToDelete?.name}</strong>? Esta acción no
+              se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isDeleting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              isLoading={isDeleting}
+            >
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

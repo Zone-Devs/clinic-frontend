@@ -89,7 +89,7 @@ export const CreateStageForm = React.memo(function CreateStageForm({
           Cancelar
         </Button>
         <Button onClick={onConfirm} isLoading={isLoading}>
-          <Save />
+          {!isLoading && <Save />}
           Guardar
         </Button>
       </DialogFooter>

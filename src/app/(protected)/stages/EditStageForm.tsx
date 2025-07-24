@@ -82,7 +82,7 @@ export const EditStageForm = React.memo(function EditStageForm({
           Cancelar
         </Button>
         <Button onClick={onConfirm} isLoading={isLoading}>
-          <RefreshCcw />
+          {!isLoading && <RefreshCcw />}
           Actualizar
         </Button>
       </DialogFooter>

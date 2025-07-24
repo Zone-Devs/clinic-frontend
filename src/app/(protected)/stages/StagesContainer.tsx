@@ -311,7 +311,7 @@ export default function StageContainer({ initialStages }: Props) {
                onClick={confirmDelete}
                isLoading={isDeleting}
              >
-              <Trash2 />
+              {!isDeleting && <Trash2 />}
                Eliminar
              </Button>
            </DialogFooter>
@@ -342,7 +342,7 @@ export default function StageContainer({ initialStages }: Props) {
             size="sm"
             isLoading={isSubmitting}
           >
-            <Save />
+            {!isSubmitting && <Save />}
             Guardar cambios
           </Button>
         )}

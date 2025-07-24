@@ -42,7 +42,7 @@ export const CreateCategoryForm = React.memo(function CreateCategoryForm({
             className="mt-1 block w-full rounded border px-3 py-2"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Ej. Electrodomésticos"
+            placeholder="Ej. Sutura"
           />
         </label>
 
