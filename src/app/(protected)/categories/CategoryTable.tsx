@@ -4,7 +4,6 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash } from 'lucide-react'
 import NoDataFallback from '@/app/components/NoDataFallback'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export interface Category {
   id: string
@@ -26,7 +25,7 @@ export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
   console.log('🚬 ===> :22 ===> CategoryTable ===> data:', data);
   return (
     <div className="overflow-auto">
-      {data.length > 0 ? <Table>
+      {data?.length > 0 ? <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Nombre</TableHead>
@@ -41,22 +40,13 @@ export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
               <TableCell>{cat.description}</TableCell>
               <TableCell className="text-right">
                 <div className="inline-flex items-center space-x-2">
-                  <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => onEdit(cat)}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Editar</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onEdit(cat)}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -64,11 +54,6 @@ export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
                   >
                     <Trash className="w-4 h-4" />
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Eliminar</p>
-                </TooltipContent>
-              </Tooltip>
                 </div>
               </TableCell>
             </TableRow>

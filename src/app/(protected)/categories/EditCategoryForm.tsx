@@ -10,6 +10,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Category } from './CategoryTable'
+import { Save, X } from 'lucide-react'
 
 interface Props {
   category: Category
@@ -75,6 +76,7 @@ export const EditCategoryForm = React.memo(function EditCategoryForm({
           onClick={onCancel}
           disabled={isLoading}
         >
+          <X />
           Cancelar
         </Button>
         <Button
@@ -87,6 +89,7 @@ export const EditCategoryForm = React.memo(function EditCategoryForm({
           isLoading={isLoading}
           disabled={!name.trim() || !description.trim()}
         >
+          {!isLoading && <Save />}
           Guardar
         </Button>
       </DialogFooter>

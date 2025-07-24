@@ -9,6 +9,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { Save, X } from 'lucide-react'
 
 interface Props {
   onConfirm: (data: { name: string; description: string }) => void
@@ -65,6 +66,7 @@ export const CreateCategoryForm = React.memo(function CreateCategoryForm({
           onClick={onCancel}
           disabled={isLoading}
         >
+          <X />
           Cancelar
         </Button>
         <Button
@@ -72,6 +74,7 @@ export const CreateCategoryForm = React.memo(function CreateCategoryForm({
           isLoading={isLoading}
           disabled={!name.trim() || !description.trim()}
         >
+          {!isLoading && <Save />}
           Crear
         </Button>
       </DialogFooter>

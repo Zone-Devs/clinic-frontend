@@ -9,11 +9,6 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
 import { Edit3, Trash } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 
 interface Props {
   id: string;
@@ -99,36 +94,22 @@ export function SortableItem({
           {children}
         </div>
         {disabled && <div className="flex gap-2">
-          <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onEdit?.(id)}
-              disabled={!disabled}
-            >
-              <Edit3 className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Editar</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-        <TooltipTrigger asChild>
           <Button
-            variant="ghost"
-            size="icon"
+            variant="outline"
+            onClick={() => onEdit?.(id)}
+            disabled={!disabled}
+          >
+            <Edit3 className="h-4 w-4" />
+            Editar
+          </Button>
+          <Button
+            variant="destructive"
             onClick={() => onDelete?.(id)}
             disabled={!disabled}
           >
             <Trash className="h-4 w-4" />
+            Eliminar
           </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Eliminar</p>
-        </TooltipContent>
-      </Tooltip>
         </div>}
       </div>
     </div>

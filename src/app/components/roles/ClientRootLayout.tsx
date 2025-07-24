@@ -5,7 +5,6 @@ import NavbarClient from '@/app/components/NavbarClient'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import AppSidebar from '../AppSidebar'
 import { MobileSidebar } from '../MobileSidebar'
-import { TooltipProvider } from "@/components/ui/tooltip"
 
 interface Props {
   children: ReactNode
@@ -23,9 +22,7 @@ export default function ClientRootLayout({ children }: Props) {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <NavbarClient />
-        <TooltipProvider>
           <main className="flex-1 overflow-auto">{children}</main>
-        </TooltipProvider>
       </div>
     </div>
   )
