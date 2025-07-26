@@ -1,4 +1,3 @@
-// src/app/(protected)/categories/EditCategoryForm.tsx
 'use client'
 
 import React, { useState, useEffect } from 'react'
@@ -28,8 +27,6 @@ export const EditCategoryForm = React.memo(function EditCategoryForm({
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
 
-  // Cuando cambie la categoría que llega por props,
-  // recargamos los campos para editar.
   useEffect(() => {
     setName(category.name)
     setDescription(category.description)

@@ -66,13 +66,8 @@ export default function StageContainer({ initialStages }: Props) {
   const [stageToDeleteName, setStageToDeleteName] = useState<string>('')
   const [isDeleting, setIsDeleting] = useState(false)
   /* Edit */
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [stageToEdit, setStageToEdit] = useState<Stage | null>(null)
-  const [formValues, setFormValues] = useState({
-    name: '',
-    description: '',
-    color: '',
-  })
+  const [editing, setEditing] = useState<Stage | null>(null)
+
   const [isUpdating, setIsUpdating] = useState(false)
 
   const sensors = useSensors(
@@ -118,24 +113,16 @@ export default function StageContainer({ initialStages }: Props) {
     }
   }
     /* Creacion de stage */
-  async function confirmCreate() {
+  async function confirmCreate(payload: Omit<Stage, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt'>) {
     setIsCreating(true)
     try {
-      const { data: newStage } = await axiosClient.post<Stage>(
-        '/api/stages',
-        {
-          name:        formValues.name,
-          description: formValues.description,
-          color:       formValues.color,
-        }
-      )
+      const { data: newStage } = await axiosClient.post<Stage>('/api/stages', payload)
       setStages((prev) =>
         [...prev, newStage]
       )
       toast.success('Etapa creada con éxito')
       setShowCreateModal(false)
     } catch (err) {
-      console.error('Error creando etapa:', err)
       toast.error('No se pudo crear la etapa')
     } finally {
       setIsCreating(false)
@@ -167,37 +154,15 @@ export default function StageContainer({ initialStages }: Props) {
    }
  }
 
-  function initiateEdit(stage: Stage) {
-    setStageToEdit(stage)
-    setFormValues({
-      name: stage.name,
-      description: stage.description,
-      color: stage.color,
-    })
-    setShowEditModal(true)
-  }
-
-  async function confirmEdit() {
-    if (!stageToEdit) return
+  async function confirmEdit(id: string, payload: Omit<Stage, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt'>) {
     setIsUpdating(true)
-
     try {
-      const { data: updatedStage } = await axiosClient.patch<Stage>(
-        `/api/stages/${stageToEdit.id}`,
-        {
-          name: formValues.name,
-          description: formValues.description,
-          color: formValues.color,
-        }
-      )
-      // actualizamos la lista con el objeto devuelto
-      setStages((prev) =>
-        prev.map((s) => (s.id === updatedStage.id ? updatedStage : s))
-      )
+      const resp = await axiosClient.patch<Stage>(`/api/stages/${id}`, payload)
+      const udpatedStages = resp.data
+      setStages(prev => prev.map(s => s.id === id ? udpatedStages : s))
       toast.success('Etapa actualizada')
-      setShowEditModal(false)
-    } catch (err) {
-      console.error('Error actualizando etapa:', err)
+      setEditing(null)
+    } catch {
       toast.error('No se pudo actualizar')
     } finally {
       setIsUpdating(false)
@@ -210,7 +175,6 @@ export default function StageContainer({ initialStages }: Props) {
       <div className="flex justify-end gap-2 mb-4">
         {!sortingEnabled && <Button
           onClick={() => {
-            setFormValues({ name: '', description: '', color: '' })
             setShowCreateModal(true)
           }}
           className='bg-primary text-primary-foreground hover:bg-gray-700 hover:text-gray-100'
@@ -279,8 +243,6 @@ export default function StageContainer({ initialStages }: Props) {
         <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
           <DialogContent>
             <CreateStageForm
-              formValues={formValues}
-              setFormValues={setFormValues}
               onConfirm={confirmCreate}
               isLoading={isCreating}
               onCancel={() => setShowCreateModal(false)}
@@ -319,19 +281,21 @@ export default function StageContainer({ initialStages }: Props) {
        </Dialog>
 
         {/* Modal de editar */}
-        <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-          <DialogContent>
-             {/* onOpenAutoFocus={event => event.preventDefault()} */}
-            <EditStageForm
-              stageName={stageToEdit?.name || ''}
-              formValues={formValues}
-              setFormValues={setFormValues}
-              onConfirm={confirmEdit}
-              isLoading={isUpdating}
-              onCancel={() => setShowEditModal(false)}
-            />
-          </DialogContent>
-        </Dialog>
+        {editing && (
+          <Dialog open={!!editing} onOpenChange={() => setEditing(null)}>
+            <DialogContent>
+              <EditStageForm
+                initial={{
+                  name:        editing.name,
+                  description: editing.description,
+                  color:       editing.color,
+                }}
+                onConfirm={data => confirmEdit(editing.id, data)}
+                onCancel={() => setEditing(null)}
+                isLoading={isUpdating}
+              />
+            </DialogContent>
+          </Dialog>)}
 
 
         {/* Guardar sólo si hubo cambios */}
@@ -376,7 +340,7 @@ export default function StageContainer({ initialStages }: Props) {
                 accentColor={stage.color}
                 leftLabel={idx + 1}
                 onDelete={() => initiateDelete(stage.id, stage.name)}
-                onEdit={() => initiateEdit(stage)}
+                onEdit={() => setEditing(stage)}
               >
               <div className="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden">
                 <strong className="w-full truncate">{stage.name}</strong>

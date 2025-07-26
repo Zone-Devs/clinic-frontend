@@ -9,7 +9,7 @@ import { CreateCategoryForm } from './CreateCategoryForm'
 import { EditCategoryForm } from './EditCategoryForm'
 import axiosClient from '@/utils/axiosClient'
 import { toast } from 'react-toastify'
-import { Plus } from 'lucide-react'
+import { Plus, Trash, X } from 'lucide-react'
 
 interface CategoryManagerProps {
   initial: Category[]
@@ -162,6 +162,7 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
               onClick={() => setShowDeleteDialog(false)}
               disabled={isDeleting}
             >
+              <X />
               Cancelar
             </Button>
             <Button
@@ -169,6 +170,7 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
               onClick={confirmDelete}
               isLoading={isDeleting}
             >
+              <Trash />
               Eliminar
             </Button>
           </DialogFooter>

@@ -42,17 +42,19 @@ export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
                 <div className="inline-flex items-center space-x-2">
                   <Button
                     size="sm"
-                    variant="ghost"
+                    variant="outline"
                     onClick={() => onEdit(cat)}
                   >
                     <Pencil className="w-4 h-4" />
+                    Editar
                   </Button>
                   <Button
                     size="sm"
-                    variant="ghost"
+                    variant="destructive"
                     onClick={() => onDelete(cat.id, cat.name)}
                   >
                     <Trash className="w-4 h-4" />
+                    Eliminar
                   </Button>
                 </div>
               </TableCell>

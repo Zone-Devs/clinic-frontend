@@ -1,5 +1,5 @@
 // app/(protected)/stages/CreateStageForm.tsx
-import React from 'react'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   DialogHeader,
@@ -10,9 +10,7 @@ import {
 import { Save, X } from 'lucide-react';
 
 interface Props {
-  formValues: { name: string; description: string; color: string }
-  setFormValues: React.Dispatch<React.SetStateAction<any>>
-  onConfirm: () => void
+  onConfirm: (data: {name: string; description: string; color: string}) => void
   isLoading: boolean
   onCancel: () => void
 }
@@ -24,12 +22,14 @@ interface StageFormValues {
 }
 
 export const CreateStageForm = React.memo(function CreateStageForm({
-  formValues,
-  setFormValues,
   onConfirm,
   isLoading,
   onCancel,
 }: Props) {
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [color, setColor] = useState('#000000')
+
   return (
     <>
       <DialogHeader>
@@ -44,9 +44,8 @@ export const CreateStageForm = React.memo(function CreateStageForm({
           <input
             type="text"
             className="mt-1 block w-full rounded border px-3 py-2"
-            value={formValues.name}
-            onChange={e =>
-              setFormValues((f: StageFormValues) => ({ ...f, name: e.target.value }))
+            value={name}
+            onChange={e => setName(e.target.value)
             }
           />
         </label>
@@ -55,10 +54,8 @@ export const CreateStageForm = React.memo(function CreateStageForm({
           <textarea
             className="mt-1 block w-full rounded border px-3 py-2"
             rows={2}
-            value={formValues.description}
-            onChange={e =>
-              setFormValues((f: StageFormValues) => ({ ...f, description: e.target.value }))
-            }
+            value={description}
+            onChange={e => setDescription(e.target.value)}
           />
         </label>
         <div className="flex items-center gap-2">
@@ -76,10 +73,8 @@ export const CreateStageForm = React.memo(function CreateStageForm({
               appearance-none
               cursor-pointer
             "
-            value={formValues.color || "#000000"}
-            onChange={e =>
-              setFormValues((f: StageFormValues) => ({ ...f, color: e.target.value }))
-            }
+            value={color}
+            onChange={e => setColor(e.target.value)}
           />
         </div>
       </div>
@@ -88,7 +83,10 @@ export const CreateStageForm = React.memo(function CreateStageForm({
           <X />
           Cancelar
         </Button>
-        <Button onClick={onConfirm} isLoading={isLoading}>
+        <Button onClick={() => onConfirm({ name: name.trim(), description: description.trim(), color: color.trim() })}
+          isLoading={isLoading}
+          disabled={!name.trim() || !description.trim()}
+        >
           {!isLoading && <Save />}
           Guardar
         </Button>
