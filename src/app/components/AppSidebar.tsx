@@ -152,10 +152,10 @@ export default function AppSidebar() {
             </SidebarMenu>
           ))}
         </SidebarContent>
-        <SidebarFooter className="px-4 py-2">
+        <SidebarFooter className="px-4 py-2 shadow-lg shadow-gray-500/50">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="w-full flex items-center gap-2">
+            <SidebarMenuButton className="w-full flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-0 focus-visible:ring-0">
               <Avatar className="h-6 w-6">
                 <AvatarFallback className='bg-primary'>{user?.firstName?.charAt(0)}</AvatarFallback>
               </Avatar>
