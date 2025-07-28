@@ -14,7 +14,11 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
-import { LayoutDashboard, ShieldUser, Workflow, Tag, Cog, ChevronDown } from 'lucide-react'
+import { LayoutDashboard, ShieldUser, Workflow, Tag, Cog, ChevronDown, LogOutIcon, ChevronsUpDown } from 'lucide-react'
+import { useUser } from '@/context/UserContext'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { LogoutButton } from './LogoutButton'
 
 const iconClass = 'w-4 h-4 mr-2 ml-2'
 
@@ -47,6 +51,8 @@ const sections = [
 export default function AppSidebar() {
   const pathname = usePathname()
   const [openSection, setOpenSection] = useState<string | null>(null)
+  const { user } = useUser()
+  console.log('🚬 ===> :54 ===> AppSidebar ===> user:', user);
 
   const isActive = (href: string) =>
     href === '/dashboard'
@@ -146,9 +152,42 @@ export default function AppSidebar() {
             </SidebarMenu>
           ))}
         </SidebarContent>
-        <SidebarFooter className="px-4 py-2 text-xs text-muted-foreground">
-          © 2025 Zonedevs
-        </SidebarFooter>
+        <SidebarFooter className="px-4 py-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton className="w-full flex items-center gap-2">
+              <Avatar className="h-6 w-6">
+                <AvatarFallback className='bg-primary'>{user?.firstName?.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col text-sm truncate">
+                <span className="font-medium text-primary-foreground truncate">{user?.firstName} {user?.lastName}</span>
+                <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
+              </div>
+              <ChevronsUpDown className="ml-auto w-4 h-4 text-muted-foreground" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent side="top" align="start" className="w-56">
+            <DropdownMenuLabel>
+              <p className='text-xs text-gray-500'>{user?.firstName} {user?.lastName}</p>
+              <p className='text-xs text-gray-500'>{user?.email}</p>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => { /* ir a perfil */ }}>
+              Account
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => { /* ir a settings */ }}>
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="flex items-center">
+              {/* <LogOutIcon className="w-4 h-4 mr-2" />
+              Log out */}
+              <LogoutButton />
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarFooter>
       </Sidebar>
   </>
   )
