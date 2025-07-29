@@ -74,8 +74,9 @@ export default function AppSidebar({ collapsed, onToggle }: Props ) {
     <>
     <Sidebar
       className={clsx(
-        'h-full overflow-x-hidden transition-all duration-300',
-        collapsed ? 'w-11' : 'w-72'
+        'h-full overflow-hidden',
+        'transition-[width] duration-300 ease-in-out',
+        collapsed ? 'w-12' : 'w-72'
       )}
     >
       {/* HEADER con botón de colapso */}
@@ -102,7 +103,7 @@ export default function AppSidebar({ collapsed, onToggle }: Props ) {
             absolute
             right-2 top-1/2
             -translate-y-1/2
-            p-1 rounded hover:bg-gray-200
+            p-1 rounded hover:bg-gray-700
           "
         >
           {!collapsed ?
@@ -121,13 +122,29 @@ export default function AppSidebar({ collapsed, onToggle }: Props ) {
                 asChild
                 isActive={isActive(item.href)}
                 onClick={() => setOpenSection(null)}
-                className={clsx('px-2 py-2', collapsed && 'justify-center')}
+                className={clsx(
+                  'px-3 py-2 flex',
+                  collapsed ? 'justify-center' : 'justify-start'
+                )}
               >
-                <Link href={item.href} className="flex items-center">
-                  <item.icon className={iconClass} />
-                  {!collapsed && (
-                    <span className="ml-3 text-sm">{item.label}</span>
+                <Link
+                  href={item.href}
+                  className={clsx(
+                    'flex items-center w-full',
+                    collapsed && 'justify-center'
                   )}
+                >
+                  <item.icon className={iconClass} />
+                    <span
+                      className={clsx(
+                        'overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out text-sm',
+                        collapsed
+                          ? 'opacity-0 max-w-0 ml-0'
+                          : 'opacity-100 max-w-[120px] ml-3'
+                      )}
+                    >
+                      {item.label}
+                    </span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -137,26 +154,17 @@ export default function AppSidebar({ collapsed, onToggle }: Props ) {
         {/* Secciones colapsables */}
         {sections.map((sec) => (
           <SidebarMenu key={sec.id}>
-            <Collapsible
-              open={openSection === sec.id}
-              onOpenChange={(o) =>
-                setOpenSection(o ? sec.id : null)
-              }
-            >
+            <Collapsible open={openSection === sec.id} onOpenChange={o => setOpenSection(o ? sec.id : null)}>
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <div
+                  <SidebarMenuButton
                     className={clsx(
-                      'flex items-center px-2 cursor-pointer',
-                      collapsed
-                        ? 'py-1 justify-center'
-                        : 'py-2 justify-start'
+                      'px-3 py-2 flex items-center transition-colors',
+                      collapsed ? 'justify-center' : 'justify-start'
                     )}
                   >
-                    {/* ICONO SIEMPRE MONTADO */}
-                    <sec.icon className={iconClass} />
+                    <sec.icon className={clsx(iconClass, 'leading-none')} />
 
-                    {/* ETIQUETA: sólo en expandido */}
                     {!collapsed && (
                       <>
                         <span className="ml-3 text-sm">{sec.title}</span>
@@ -168,7 +176,7 @@ export default function AppSidebar({ collapsed, onToggle }: Props ) {
                         />
                       </>
                     )}
-                  </div>
+                  </SidebarMenuButton>
                 </CollapsibleTrigger>
               </SidebarMenuItem>
 
@@ -176,18 +184,25 @@ export default function AppSidebar({ collapsed, onToggle }: Props ) {
               {/* Sólo mostramos sub-items si NO está colapsado */}
               {!collapsed && (
                 <CollapsibleContent className="pl-8">
-                  {sec.items.map((item) => (
-                    <SidebarMenuSub key={item.href}>
-                      <SidebarMenuButton asChild isActive={isActive(item.href)}>
-                        <Link href={item.href}
-                          className="flex items-center px-2 py-1"
-                        >
-                          <item.icon className={iconClass} />
-                          <span className="ml-3 text-sm">{item.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuSub>
-                  ))}
+                  <div
+                    className={clsx(
+                      'overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out',
+                      openSection === sec.id ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
+                    )}
+                  >
+                    {sec.items.map((item) => (
+                      <SidebarMenuSub key={item.href}>
+                        <SidebarMenuButton asChild isActive={isActive(item.href)}>
+                          <Link href={item.href}
+                            className="flex items-center px-2 py-1"
+                          >
+                            <item.icon className={iconClass} />
+                            <span className="ml-3 text-sm">{item.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuSub>
+                    ))}
+                  </div>
                 </CollapsibleContent>
               )}
             </Collapsible>
