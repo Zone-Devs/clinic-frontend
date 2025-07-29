@@ -1,5 +1,11 @@
 // app/(protected)/stages/CreateStageForm.tsx
-import React, { useState } from 'react'
+'use client'
+
+import React from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import {
   DialogHeader,
@@ -7,18 +13,20 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { Save, X } from 'lucide-react';
+import { Save, X } from 'lucide-react'
+
+const stageSchema = z.object({
+  name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres').max(255, 'Máximo 255 caracteres'),
+  description: z.string().min(3, 'La descripción debe tener al menos 3 caracteres').max(255, 'Máximo 255 caracteres'),
+  color: z.string().nonempty(),
+})
+
+type FormValues = z.infer<typeof stageSchema>
 
 interface Props {
-  onConfirm: (data: {name: string; description: string; color: string}) => void
+  onConfirm: (data: FormValues) => void
   isLoading: boolean
   onCancel: () => void
-}
-
-interface StageFormValues {
-  name: string
-  description: string
-  color: string
 }
 
 export const CreateStageForm = React.memo(function CreateStageForm({
@@ -26,9 +34,15 @@ export const CreateStageForm = React.memo(function CreateStageForm({
   isLoading,
   onCancel,
 }: Props) {
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [color, setColor] = useState('#000000')
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<FormValues>({
+    resolver: zodResolver(stageSchema),
+    mode: 'onChange',
+    defaultValues: { name: '', description: '', color: '#000000' },
+  })
 
   return (
     <>
@@ -38,59 +52,122 @@ export const CreateStageForm = React.memo(function CreateStageForm({
           Completa los datos para crear una etapa.
         </DialogDescription>
       </DialogHeader>
-      <div className="grid gap-4 py-2">
-        <label className="block">
-          <span className="text-sm font-medium">Nombre</span>
-          <input
-            type="text"
-            className="mt-1 block w-full rounded border px-3 py-2"
-            value={name}
-            onChange={e => setName(e.target.value)
-            }
-          />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">Descripción</span>
-          <textarea
-            className="mt-1 block w-full rounded border px-3 py-2"
-            rows={2}
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-          />
-        </label>
+
+      <form onSubmit={handleSubmit(onConfirm)} className="space-y-4">
+        {/* Nombre */}
+        <div>
+          <label className="block">
+            <span className="text-sm font-medium">Nombre</span>
+            <input
+              {...register('name')}
+              type="text"
+              className={`mt-1 block w-full rounded border px-3 py-2 ${
+                errors.name ? 'border-red-500' : ''
+              }`}
+              placeholder="Escribe el nombre"
+            />
+          </label>
+          <AnimatePresence initial={false} mode="wait">
+            {errors.name && (
+              <motion.p
+                layout
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{
+                  opacity: {
+                    duration: 0.3,
+                    ease: [0.4, 0.0, 0.2, 1],
+                  },
+                  height: {
+                    duration: 0.5,
+                    ease: [0.4, 0.0, 0.2, 1],
+                  },
+                  layout: {
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 30,
+                  },
+                }}
+                className="mt-1 text-sm text-red-600 overflow-hidden"
+              >
+                {errors.name.message}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Descripción */}
+        <div>
+          <label className="block">
+            <span className="text-sm font-medium">Descripción</span>
+            <textarea
+              {...register('description')}
+              rows={2}
+              className={`mt-1 block w-full rounded border px-3 py-2 ${
+                errors.description ? 'border-red-500' : ''
+              }`}
+              placeholder="Describe la etapa"
+            />
+          </label>
+          <AnimatePresence initial={false} mode="wait">
+            {errors.description && (
+              <motion.p
+                layout
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{
+                  opacity: {
+                    duration: 0.3,
+                    ease: [0.4, 0.0, 0.2, 1],
+                  },
+                  height: {
+                    duration: 0.5,
+                    ease: [0.4, 0.0, 0.2, 1],
+                  },
+                  layout: {
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 30,
+                  },
+                }}
+                className="mt-1 text-sm text-red-600 overflow-hidden"
+              >
+                {errors.description.message}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Color */}
         <div className="flex items-center gap-2">
-          <label htmlFor="new-stage-color" className="text-sm font-medium">
+          <label htmlFor="color-picker" className="text-sm font-medium">
             Color
           </label>
           <input
-            id="new-stage-color"
+            {...register('color')}
+            id="color-picker"
             type="color"
-            className="
-              h-7 w-7
-              rounded-full
-              border-2
-              p-0
-              appearance-none
-              cursor-pointer
-            "
-            value={color}
-            onChange={e => setColor(e.target.value)}
+            className="h-7 w-7 rounded-full border-2 p-0 appearance-none cursor-pointer"
           />
         </div>
-      </div>
-      <DialogFooter className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel} disabled={isLoading}>
-          <X />
-          Cancelar
-        </Button>
-        <Button onClick={() => onConfirm({ name: name.trim(), description: description.trim(), color: color.trim() })}
-          isLoading={isLoading}
-          disabled={!name.trim() || !description.trim()}
-        >
-          {!isLoading && <Save />}
-          Guardar
-        </Button>
-      </DialogFooter>
+
+        <DialogFooter className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onCancel} disabled={isLoading}>
+            <X />
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            isLoading={isLoading}
+            disabled={!isValid || isLoading}
+          >
+            {!isLoading && <Save />}
+            Guardar
+          </Button>
+        </DialogFooter>
+      </form>
     </>
   )
 })

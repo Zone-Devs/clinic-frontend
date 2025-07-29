@@ -14,7 +14,7 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
-import { LayoutDashboard, ShieldUser, Workflow, Tag, Cog, ChevronDown, LogOutIcon, ChevronsUpDown } from 'lucide-react'
+import { LayoutDashboard, ShieldUser, Workflow, Tag, Cog, ChevronDown, ChevronsUpDown } from 'lucide-react'
 import { useUser } from '@/context/UserContext'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -52,7 +52,6 @@ export default function AppSidebar() {
   const pathname = usePathname()
   const [openSection, setOpenSection] = useState<string | null>(null)
   const { user } = useUser()
-  console.log('🚬 ===> :54 ===> AppSidebar ===> user:', user);
 
   const isActive = (href: string) =>
     href === '/dashboard'
