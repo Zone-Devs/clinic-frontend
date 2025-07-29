@@ -1,8 +1,9 @@
-// app/layout.tsx (ClientRootLayout.tsx)
+// app/layout.tsx  (ClientRootLayout.tsx)
 'use client'
-import { ReactNode } from 'react'
-import AppSidebar from '../AppSidebar'
+
+import { ReactNode, useState } from 'react'
 import { SidebarProvider } from '@/components/ui/sidebar'
+import AppSidebar from '../AppSidebar'
 import { MobileSidebar } from '../MobileSidebar'
 
 interface Props {
@@ -10,25 +11,33 @@ interface Props {
 }
 
 export default function ClientRootLayout({ children }: Props) {
+  // aquí vivirá el estado collapsed
+  const [collapsed, setCollapsed] = useState(false)
+  const toggle = () => setCollapsed((c) => !c)
+
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* —————— MÓVIL: trigger/header fijo —————— */}
+      {/* móvil: igual que antes, si quieres también le puedes pasar collapsed si es necesario */}
       <MobileSidebar />
 
-      {/* —————— DESKTOP: sidebar permanente —————— */}
-      <aside className="hidden md:block w-72 shrink-0 overflow-y-auto overflow-x-hidden">
+      {/* desktop: el wrapper <aside> ajusta su width según collapsed */}
+      <aside
+        className={`
+          hidden md:block
+          flex-shrink-0
+          transition-width duration-300
+          ${collapsed ? 'w-16' : 'w-72'}
+        `}
+      >
         <SidebarProvider>
-          <AppSidebar />
+          {/* pasamos collapsed y toggle a AppSidebar */}
+          <AppSidebar collapsed={collapsed} onToggle={toggle} />
         </SidebarProvider>
       </aside>
 
-      {/* —————— CONTENIDO PRINCIPAL —————— */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 
-          En móvil: pt-16 para que main empuje su contenido debajo de la cabecera fija;
-          en desktop: pt-0 porque md:pt-0 anula el pt-16 a partir de md.
-        */}
-        <main className="flex-1 overflow-auto pt-16 md:pt-0">
+      {/* contenido principal: flex-1 para ocupar todo lo que quede */}
+      <div className="flex-1 overflow-auto transition-all duration-300">
+        <main className="p-6">
           {children}
         </main>
       </div>

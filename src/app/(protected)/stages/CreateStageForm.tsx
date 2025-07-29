@@ -64,7 +64,7 @@ export const CreateStageForm = React.memo(function CreateStageForm({
               className={`mt-1 block w-full rounded border px-3 py-2 ${
                 errors.name ? 'border-red-500' : ''
               }`}
-              placeholder="Escribe el nombre"
+              placeholder="Ej. Inicio"
             />
           </label>
           <AnimatePresence initial={false} mode="wait">
@@ -107,7 +107,7 @@ export const CreateStageForm = React.memo(function CreateStageForm({
               className={`mt-1 block w-full rounded border px-3 py-2 ${
                 errors.description ? 'border-red-500' : ''
               }`}
-              placeholder="Describe la etapa"
+              placeholder="Una breve descripción de la etapa"
             />
           </label>
           <AnimatePresence initial={false} mode="wait">

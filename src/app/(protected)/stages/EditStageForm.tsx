@@ -14,6 +14,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { RefreshCcw, X } from 'lucide-react'
+import type { Transition } from "framer-motion"
 
 const stageSchema = z.object({
   name: z
@@ -34,6 +35,12 @@ interface Props {
   onConfirm: (data: FormValues) => void
   isLoading: boolean
   onCancel: () => void
+}
+
+const transitionParams: Transition = {
+  opacity: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+  height: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
+  layout: { type: 'spring', stiffness: 300, damping: 30 }
 }
 
 export const EditStageForm = React.memo(function EditStageForm({
@@ -79,11 +86,7 @@ export const EditStageForm = React.memo(function EditStageForm({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                transition={{
-                  opacity: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
-                  height: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
-                  layout: { type: 'spring', stiffness: 300, damping: 30 },
-                }}
+                transition={transitionParams}
                 className="mt-1 text-sm text-red-600 overflow-hidden"
               >
                 {errors.name.message}
@@ -111,11 +114,7 @@ export const EditStageForm = React.memo(function EditStageForm({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                transition={{
-                  opacity: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
-                  height: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
-                  layout: { type: 'spring', stiffness: 300, damping: 30 },
-                }}
+                transition={transitionParams}
                 className="mt-1 text-sm text-red-600 overflow-hidden"
               >
                 {errors.description.message}
