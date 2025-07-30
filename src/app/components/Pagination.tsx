@@ -5,78 +5,81 @@ export function ClassicPagination({
   page,
   totalPages,
   onPageChange,
-  loading
+  loading,
 }: {
   page: number
   totalPages: number
   onPageChange: (p: number) => void
   loading?: boolean
 }) {
-    const pages = []
-    const maxVisiblePages = 4
-    const hasMore = totalPages > maxVisiblePages
-    const startPage = Math.max(1, page - 2)
-    const endPage = hasMore ? Math.min(totalPages - 1, page + 2) : totalPages
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i)
-    }
+  const maxVisiblePages = 3
+  const pages = []
 
-    return (
-      <div className="flex items-center justify-center mt-4 space-x-1">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => onPageChange(Math.max(1, page - 1))}
-          disabled={page === 1 || loading}
-        >
-          Anterior
-        </Button>
+  const half = Math.floor(maxVisiblePages / 2)
+  let startPage = Math.max(1, page - half)
+  let endPage = startPage + maxVisiblePages - 1
 
-        {startPage > 1 && (
-          <>
-            <Button size="sm" variant="ghost" onClick={() => onPageChange(1)}>
-              1
-            </Button>
-            {startPage > 2 && <span className="px-1 text-muted-foreground">…</span>}
-          </>
-        )}
+  if (endPage > totalPages) {
+    endPage = totalPages
+    startPage = Math.max(1, endPage - maxVisiblePages + 1)
+  }
 
-        {pages.map(p => (
-          <Button
-            key={p}
-            size="sm"
-            variant={p === page ? "default" : "ghost"}
-            onClick={() => onPageChange(p)}
-            disabled={loading}
-            className={cn(p === page && "pointer-events-none")}
-          >
-            {p}
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return (
+    <div className="flex items-center justify-center mt-4 space-x-1">
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => onPageChange(Math.max(1, page - 1))}
+        disabled={page === 1 || loading}
+      >
+        Anterior
+      </Button>
+
+      {startPage > 1 && (
+        <>
+          <Button size="sm" variant="ghost" onClick={() => onPageChange(1)}>
+            1
           </Button>
-        ))}
+          {startPage > 2 && <span className="px-1 text-muted-foreground">…</span>}
+        </>
+      )}
 
-        {endPage < totalPages && (
-          <>
-            {endPage < totalPages - 1 && <span className="px-1 text-muted-foreground">…</span>}
-            <Button
-                size="sm"
-                variant={page === totalPages ? "default" : "ghost"}
-                onClick={() => onPageChange(totalPages)}
-                disabled={loading}
-                className={cn(page === totalPages && "pointer-events-none")}
-            >
-                {totalPages}
-            </Button>
-          </>
-        )}
-
+      {pages.map((p) => (
         <Button
+          key={p}
           size="sm"
-          variant="outline"
-          onClick={() => onPageChange(Math.min(totalPages, page + 1))}
-          disabled={page === totalPages || loading}
+          variant={p === page ? "default" : "ghost"}
+          onClick={() => onPageChange(p)}
+          disabled={loading}
+          className={cn(p === page && "pointer-events-none")}
         >
-          Siguiente
+          {p}
         </Button>
-      </div>
-    )
+      ))}
+
+      {endPage < totalPages && (
+        <>
+          {endPage < totalPages - 1 && (
+            <span className="px-1 text-muted-foreground">…</span>
+          )}
+          <Button size="sm" variant="ghost" onClick={() => onPageChange(totalPages)}>
+            {totalPages}
+          </Button>
+        </>
+      )}
+
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+        disabled={page === totalPages || loading}
+      >
+        Siguiente
+      </Button>
+    </div>
+  )
 }

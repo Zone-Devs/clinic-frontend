@@ -44,7 +44,7 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(false)
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  const limit = 10
+  const [limit, setLimit] = useState(10)
 
   async function loadCategories(newPage = page, currentSearch = debouncedSearch) {
     setLoading(true)
@@ -83,7 +83,7 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
 
   useEffect(() => {
     loadCategories()
-  }, [debouncedSearch, page])
+  }, [debouncedSearch, page, limit])
 
   // ========== CREATE ==========
   async function handleCreate(payload: Omit<Category, 'id'>) {
@@ -172,7 +172,25 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
             </button>
           )}
         </div>
-
+        <div className="flex items-center gap-2 text-sm">
+          <label htmlFor="limit">Mostrar</label>
+          <select
+            id="limit"
+            className="border rounded-md px-2 py-1"
+            value={limit}
+            onChange={(e) => {
+              setLimit(Number(e.target.value))
+              setPage(1)
+            }}
+          >
+            {[5, 10, 20, 50].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+          <span>registros</span>
+        </div>
         {/* Botón a la derecha */}
         <Button size="sm" onClick={() => setCreating(true)}>
           <Plus />
