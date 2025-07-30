@@ -11,30 +11,13 @@ import axiosClient from '@/utils/axiosClient'
 import { toast } from 'react-toastify'
 import { Plus, Trash, X, XIcon } from 'lucide-react'
 import debounce from 'lodash.debounce'
-import { motion } from 'framer-motion'
+import { ClassicPagination } from '@/app/components/Pagination'
+import Spinner from '@/app/components/Spinner'
 
 
 interface CategoryManagerProps {
   initial: Category[]
 }
-
-const Spinner = () => (
-    <div className="flex flex-col items-center justify-center h-[300px] w-full space-y-4">
-      <motion.div
-        className="w-10 h-10 border-4 border-muted border-t-transparent rounded-full"
-        animate={{ rotate: 360 }}
-        transition={{ repeat: Infinity, duration: 0.9, ease: 'linear' }}
-      />
-      <motion.p
-        className="text-sm text-muted-foreground"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-      >
-        Cargando...
-      </motion.p>
-    </div>
-)
 
 
 export function CategoryManager({ initial }: CategoryManagerProps) {
@@ -58,9 +41,35 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
   // Busqueda
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(false)
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const limit = 10
+
+  async function loadCategories(newPage = page, currentSearch = debouncedSearch) {
+    setLoading(true)
+    try {
+      const res = await axiosClient.get('/api/categories', {
+        params: { search: currentSearch, page: newPage, limit }
+      })
+      const json = res.data
+
+      const resultData = Array.isArray(json) ? json : json.data
+      setCategories(resultData)
+
+      // Actualiza totalPages correctamente
+      if (json.totalPages) {
+        setTotalPages(json.totalPages)
+      } else {
+        const totalItems = json.total || resultData.length
+        setTotalPages(Math.ceil(totalItems / limit))
+      }
+    } catch {
+      toast.error('Error al cargar categorías')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const debouncer = useMemo(() => debounce((value: string) => {
     setDebouncedSearch(value)
@@ -73,23 +82,8 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
   }, [search])
 
   useEffect(() => {
-  async function fetchCategories() {
-    setLoading(true)
-    try {
-      const res = await axiosClient.get('/api/categories', {
-        params: { search: debouncedSearch, page, limit }
-      })
-      const json = res.data
-      setCategories(Array.isArray(json) ? json : json.data)
-    } catch {
-      toast.error('Error al cargar categorías')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  fetchCategories()
-}, [debouncedSearch, page])
+    loadCategories()
+  }, [debouncedSearch, page])
 
   // ========== CREATE ==========
   async function handleCreate(payload: Omit<Category, 'id'>) {
@@ -100,9 +94,10 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
       if (!newCategory) {
         throw new Error('Error al crear categoría')
       }
-      setCategories((prev) => [...prev, newCategory])
       toast.success('Categoría creada')
       setCreating(false)
+      setPage(1)
+      await loadCategories()
     } catch {
       toast.error('Error al crear categoría')
     } finally {
@@ -141,11 +136,10 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
       await axiosClient.delete(
         `/api/categories/${categoryToDelete.id}`
       )
-      // actualizamos lista
-      setCategories(prev =>
-        prev.filter(c => c.id !== categoryToDelete.id)
-      )
       toast.success(`Categoría "${categoryToDelete.name}" eliminada`)
+      const nextPage = categories.length === 1 && page > 1 ? page - 1 : page
+      setPage(nextPage)
+      await loadCategories(nextPage)
     } catch {
       toast.error('Error al eliminar categoría')
     } finally {
@@ -197,14 +191,15 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
           onDelete={(id, name) => initiateDelete(id, name)}
         />
       )}
-      <div className="flex justify-end mt-4 gap-2">
-        <Button size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1 || loading}>
-          Anterior
-        </Button>
-        <Button size="sm" onClick={() => setPage(p => p + 1)} disabled={categories.length < limit || loading}>
-          Siguiente
-        </Button>
-      </div>
+      {/* Seccion de paginacion */}
+      <ClassicPagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        loading={loading}
+      />
+
+
 
       {/* ——— Crear categoría ——— */}
       <Dialog open={creating} onOpenChange={setCreating}>
