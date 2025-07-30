@@ -28,12 +28,12 @@ export default async function RolesPage() {
 
   return (
     <main className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Flujo de trabajo</h1>
-        <p className="text-gray-500 text-sm">
-          Sección donde puedes ver, añadir y reordenar las etapas de tu flujo de trabajo.
-        </p>
-      </div>
+    <div className="mb-6">
+      <h1 className="text-2xl font-bold text-gray-900">Flujo de trabajo</h1>
+      <p className="text-sm text-gray-400">
+        Sección donde puedes ver, añadir y reordenar las etapas de tu flujo de trabajo.
+      </p>
+    </div>
       {/* Pasamos los datos iniciales */}
       <StagesContainer initialStages={stages} />
     </main>

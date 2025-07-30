@@ -104,6 +104,7 @@ export default function AppSidebar({ collapsed, onToggle }: Props ) {
             right-2 top-1/2
             -translate-y-1/2
             p-1 rounded hover:bg-gray-700
+            cursor-pointer
           "
         >
           {!collapsed ?
@@ -159,7 +160,7 @@ export default function AppSidebar({ collapsed, onToggle }: Props ) {
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     className={clsx(
-                      'px-3 py-2 flex items-center transition-colors',
+                      'px-3 py-2 flex items-center transition-colors cursor-pointer',
                       collapsed ? 'justify-center' : 'justify-start'
                     )}
                   >

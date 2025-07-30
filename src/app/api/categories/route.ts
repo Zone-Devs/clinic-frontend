@@ -5,18 +5,31 @@ const serverErrorMsg = 'Error interno en el servidor. Intente más tarde'
 
 export async function GET(req: NextRequest) {
   const token = req.cookies.get('token')?.value
-
   if (!token) {
     return NextResponse.json({ message: 'No autorizado' }, { status: 401 })
   }
 
+  const { searchParams } = new URL(req.url)
+  const search = searchParams.get('search') || ''
+  const page = searchParams.get('page') || '1'
+  const limit = searchParams.get('limit') || '10'
+
+  const queryString = new URLSearchParams({
+    ...(search && { search }),
+    page,
+    limit,
+  }).toString()
+
   try {
-    const backendRes = await fetch(`${BACKEND_URL}/api/equipment-category`, {
-      method: 'GET',
-      headers: {
-          'Authorization': `Bearer ${token}`
-        }
-    })
+    const backendRes = await fetch(
+      `${BACKEND_URL}/api/equipment-category?${queryString}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    )
 
     if (backendRes.status === 401) {
       return NextResponse.json({ message: 'No autorizado' }, { status: 401 })
@@ -28,12 +41,12 @@ export async function GET(req: NextRequest) {
 
     const data = await backendRes.json()
     return NextResponse.json(data, { status: backendRes.status })
-
   } catch (err) {
     console.error('Error proxy /api/categories GET:', err)
     return NextResponse.json({ message: serverErrorMsg }, { status: 500 })
   }
 }
+
 
 export async function POST(req: NextRequest) {
   const token = req.cookies.get('token')?.value

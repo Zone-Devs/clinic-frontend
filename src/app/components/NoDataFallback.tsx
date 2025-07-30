@@ -20,7 +20,7 @@ export default function NoDataFallback({ type, needsCreateLabel=false }: NoDataF
         No se encontraron {type}s
     </h3>
     <p className="text-center text-gray-500">
-        Agrega tu primera {type} haciendo click en el botón{' '}
+        Intenta agregar una {type} haciendo click en el botón{' '}
         <strong>+ {needsCreateLabel ? "Crear" : "Añadir"} {type}</strong> que está arriba.
     </p>
     </div>

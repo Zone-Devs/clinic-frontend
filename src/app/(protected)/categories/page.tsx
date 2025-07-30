@@ -15,6 +15,7 @@ export default async function CategoriesPage() {
       cache: 'no-store',
     })
     const json = await res.json()
+    console.log('🚬 ===> :18 ===> CategoriesPage ===> json:', json);
     categories = Array.isArray(json) ? json : json.data
   } catch (err: any) {
       return (
@@ -27,8 +28,8 @@ export default async function CategoriesPage() {
   return (
     <main className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Categorías de equipos</h1>
-        <p className="text-gray-500 text-sm">
+        <h1 className="text-2xl font-bold text-gray-900">Categorías de equipos</h1>
+        <p className="text-sm text-gray-400">
           Sección donde puedes ver y gestionar las categorías de los equipos.
         </p>
       </div>

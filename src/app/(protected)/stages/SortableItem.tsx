@@ -100,7 +100,7 @@ export function SortableItem({
             disabled={!disabled}
           >
             <Edit3 className="h-4 w-4" />
-            Editar
+            <span className='hidden md:inline'>Editar</span>
           </Button>
           <Button
             variant="destructive"
@@ -108,7 +108,7 @@ export function SortableItem({
             disabled={!disabled}
           >
             <Trash className="h-4 w-4" />
-            Eliminar
+            <span className='hidden md:inline'>Eliminar</span>
           </Button>
         </div>}
       </div>

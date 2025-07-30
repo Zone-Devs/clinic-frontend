@@ -37,7 +37,7 @@ export default function ClientRootLayout({ children }: Props) {
 
       {/* contenido principal: flex-1 para ocupar todo lo que quede */}
       <div className="flex-1 overflow-auto transition-all duration-300">
-        <main className="p-6">
+        <main className="pt-8">
           {children}
         </main>
       </div>
