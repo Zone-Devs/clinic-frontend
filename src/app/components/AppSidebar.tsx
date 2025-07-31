@@ -23,6 +23,7 @@ import {
   ChevronsUpDown,
   PanelLeftClose,
   PanelRightClose,
+  Pickaxe,
 } from 'lucide-react'
 import { useUser } from '@/context/UserContext'
 import {
@@ -51,6 +52,7 @@ const sections = [
     items: [
       { href: '/stages', label: 'Flujo de trabajo', icon: Workflow },
       { href: '/categories', label: 'Categorías de equipos', icon: Tag },
+      { href: '/equipments', label: 'Equipos médicos', icon: Pickaxe },
     ],
   },
 ]

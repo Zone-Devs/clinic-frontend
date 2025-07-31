@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   DialogHeader,
@@ -8,15 +8,18 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { Equipment } from './EquipmentTable'
 import { Save, X } from 'lucide-react'
 
 interface Props {
+  equipment: Equipment
   onConfirm: (data: { name: string; description: string }) => void
   onCancel: () => void
   isLoading?: boolean
 }
 
-export const CreateCategoryForm = React.memo(function CreateCategoryForm({
+export const EditEquipmentForm = React.memo(function EditEquipmentForm({
+  equipment,
   onConfirm,
   onCancel,
   isLoading = false,
@@ -24,12 +27,17 @@ export const CreateCategoryForm = React.memo(function CreateCategoryForm({
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
 
+  useEffect(() => {
+    setName(equipment.name)
+    setDescription(equipment.description)
+  }, [equipment])
+
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Crear nueva categoría</DialogTitle>
+        <DialogTitle>Editar categoría</DialogTitle>
         <DialogDescription>
-          Introduce un nombre y una descripción para tu categoría.
+          Modifica el nombre o la descripción de la categoría.
         </DialogDescription>
       </DialogHeader>
 
@@ -54,7 +62,7 @@ export const CreateCategoryForm = React.memo(function CreateCategoryForm({
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Una breve descripción de la categoría"
+            placeholder="Una breve descripción de"
           />
         </label>
       </div>
@@ -69,12 +77,17 @@ export const CreateCategoryForm = React.memo(function CreateCategoryForm({
           Cancelar
         </Button>
         <Button
-          onClick={() => onConfirm({ name: name.trim(), description: description.trim() })}
+          onClick={() =>
+            onConfirm({
+              name: name.trim(),
+              description: description.trim(),
+            })
+          }
           isLoading={isLoading}
           disabled={!name.trim() || !description.trim()}
         >
           {!isLoading && <Save />}
-          Crear
+          Guardar
         </Button>
       </DialogFooter>
     </>
