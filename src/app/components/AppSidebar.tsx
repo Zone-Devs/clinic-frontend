@@ -80,7 +80,7 @@ export default function AppSidebar({ collapsed, onToggle }: Props ) {
       )}
     >
       {/* HEADER con botón de colapso */}
-      <SidebarHeader className="relative px-4 py-6">
+      <SidebarHeader className="relative px-4 py-8">
         {/* Título siempre centrado (solo si no está colapsado) */}
         {!collapsed && (
           <span
@@ -212,55 +212,57 @@ export default function AppSidebar({ collapsed, onToggle }: Props ) {
       </SidebarContent>
 
       {/* FOOTER */}
-      <SidebarFooter className="py-4">
-        {collapsed ? (
-          // Sólo avatar
-          <Avatar className="h-6 w-6 mx-auto">
-            <AvatarFallback className='bg-primary'>{user?.firstName?.[0]}</AvatarFallback>
-          </Avatar>
-        ) : (
-          // Dropdown completo
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="flex items-center w-full px-2 py-2 cursor-pointer">
-                <Avatar className="h-6 w-6">
-                  <AvatarFallback className='bg-primary'>
-                    {user?.firstName?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="ml-3 flex-1">
-                  <p className="text-sm font-medium truncate">
+      <div className="flex items-center w-full px-0.5 py-0.5 cursor-pointer hover:bg-primary transition-colors rounded-md hover:-translate-y-[1px]">
+        <SidebarFooter className="w-full bg-black">
+          {collapsed ? (
+            // Sólo avatar
+            <Avatar className="h-6 w-6 mx-auto">
+              <AvatarFallback className='bg-primary'>{user?.firstName?.[0]}</AvatarFallback>
+            </Avatar>
+          ) : (
+            // Dropdown completo
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="flex items-center w-full px-2 py-2 cursor-pointer">
+                  <Avatar className="h-6 w-6">
+                    <AvatarFallback className='bg-primary'>
+                      {user?.firstName?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="ml-3 flex-1">
+                    <p className="text-sm font-medium truncate">
+                      {user?.firstName} {user?.lastName}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {user?.email}
+                    </p>
+                  </div>
+                  <ChevronsUpDown className="w-4 h-4 text-white" />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="top" align="start" className="w-56">
+                <DropdownMenuLabel>
+                  <p className="text-xs text-gray-500">
                     {user?.firstName} {user?.lastName}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user?.email}
-                  </p>
-                </div>
-                <ChevronsUpDown className="w-4 h-4 text-muted-foreground" />
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="top" align="start" className="w-56">
-              <DropdownMenuLabel>
-                <p className="text-xs text-gray-500">
-                  {user?.firstName} {user?.lastName}
-                </p>
-                <p className="text-xs text-gray-500">{user?.email}</p>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => {}}>
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => {}}>
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex items-center">
-                <LogoutButton />
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </SidebarFooter>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => {}}>
+                  Account
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => {}}>
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="flex items-center">
+                  <LogoutButton />
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </SidebarFooter>
+      </div>
     </Sidebar>
     </>
   )
