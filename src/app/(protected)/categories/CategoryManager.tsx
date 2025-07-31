@@ -9,7 +9,7 @@ import { CreateCategoryForm } from './CreateCategoryForm'
 import { EditCategoryForm } from './EditCategoryForm'
 import axiosClient from '@/utils/axiosClient'
 import { toast } from 'react-toastify'
-import { Plus, Trash, X, XIcon } from 'lucide-react'
+import { Plus, Search, Trash, X, XIcon } from 'lucide-react'
 import debounce from 'lodash.debounce'
 import { ClassicPagination } from '@/app/components/Pagination'
 import Spinner from '@/app/components/Spinner'
@@ -152,52 +152,56 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
   return (
     <div>
       {/* Toolbar */}
-      <div className="flex items-center justify-between mb-4 gap-2">
-        {/* Input a la izquierda */}
-        <div className="relative w-full max-w-xs">
-          <input
-            type="text"
-            placeholder="Buscar categoría"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full border px-3 py-1.5 pr-9 rounded-md text-sm"
-          />
-          {search && (
-            <button
-              type="button"
-              onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer"
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+        {/* Filtro e input */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Buscar categoría"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full border px-3 py-1.5 pl-9 pr-9 rounded-md text-sm"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer"
+              >
+                <XIcon className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 text-sm">
+            <label htmlFor="limit">Mostrar</label>
+            <select
+              id="limit"
+              className="border rounded-md px-2 py-1"
+              value={limit}
+              onChange={(e) => {
+                setLimit(Number(e.target.value))
+                setPage(1)
+              }}
             >
-              <XIcon />
-            </button>
-          )}
+              {[5, 10, 20, 50].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+            <span>registros</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <label htmlFor="limit">Mostrar</label>
-          <select
-            id="limit"
-            className="border rounded-md px-2 py-1"
-            value={limit}
-            onChange={(e) => {
-              setLimit(Number(e.target.value))
-              setPage(1)
-            }}
-          >
-            {[5, 10, 20, 50].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-          <span>registros</span>
-        </div>
-        {/* Botón a la derecha */}
-        <Button size="sm" onClick={() => setCreating(true)}>
-          <Plus />
+
+        {/* Botón */}
+        <Button size="sm" onClick={() => setCreating(true)} className="w-full sm:w-auto justify-center">
+          <Plus className="mr-1 h-4 w-4" />
           Crear categoría
         </Button>
       </div>
-
 
       {/* Tabla */}
       {loading ? (

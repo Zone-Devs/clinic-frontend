@@ -34,7 +34,7 @@ export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
         </TableHeader>
         <TableBody>
           {data.map((cat) => (
-            <TableRow key={cat.id} className="min-w-0">
+            <TableRow key={cat.id} className="odd:bg-muted min-w-0">
               <TableCell className="w-[30%] truncate whitespace-nowrap overflow-hidden max-w-[70px]">
                 {cat.name}
               </TableCell>
@@ -54,6 +54,7 @@ export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
                   <Button
                     size="sm"
                     variant="destructive"
+                    className='bg-red-500 text-white'
                     onClick={() => onDelete(cat.id, cat.name)}
                   >
                     <Trash className="w-4 h-4" />

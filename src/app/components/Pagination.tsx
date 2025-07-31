@@ -35,6 +35,7 @@ export function ClassicPagination({
         variant="outline"
         onClick={() => onPageChange(Math.max(1, page - 1))}
         disabled={page === 1 || loading}
+        className="sm:px-4 px-2 py-1 text-sm"
       >
         Anterior
       </Button>
@@ -55,7 +56,10 @@ export function ClassicPagination({
           variant={p === page ? "default" : "ghost"}
           onClick={() => onPageChange(p)}
           disabled={loading}
-          className={cn(p === page && "pointer-events-none")}
+          className={cn(
+            "sm:px-4 sm:py-1.5 px-2.5 py-1 text-xs",
+            p === page && "pointer-events-none"
+          )}
         >
           {p}
         </Button>
@@ -77,6 +81,7 @@ export function ClassicPagination({
         variant="outline"
         onClick={() => onPageChange(Math.min(totalPages, page + 1))}
         disabled={page === totalPages || loading}
+        className="sm:px-4 px-2 py-1 text-sm"
       >
         Siguiente
       </Button>
