@@ -93,16 +93,21 @@ export function EquipmentManager({ initial }: EquipmentManagerProps) {
       if (!newEquipment) {
         throw new Error('Error al crear Equipo')
       }
-      toast.success('Equipo creada')
-      setCreating(false)
-      setPage(1)
+
+      toast.success('Equipo creado')
+
+      // Aquí NO cierres el dialog
+      // Solo guarda el equipo creado en un estado (si es necesario)
       await loadEquipments()
+      setPage(1)
+      return newEquipment // <-- retorna para que el componente hijo avance al paso 2
     } catch {
       toast.error('Error al crear Equipo')
     } finally {
       setIsCreating(false)
     }
   }
+
 
   // ========== UPDATE ==========
   async function handleEdit(id: string, payload: Omit<Equipment, 'id'>) {

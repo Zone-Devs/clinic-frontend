@@ -12,6 +12,7 @@ export function ClassicPagination({
   onPageChange: (p: number) => void
   loading?: boolean
 }) {
+  console.log({page}, {totalPages})
   const maxVisiblePages = 3
   const pages = []
 
@@ -29,6 +30,7 @@ export function ClassicPagination({
   }
 
   return (
+    (totalPages > 0  &&
     <div className="flex items-center justify-center mt-4 space-x-1">
       <Button
         size="sm"
@@ -80,11 +82,11 @@ export function ClassicPagination({
         size="sm"
         variant="outline"
         onClick={() => onPageChange(Math.min(totalPages, page + 1))}
-        disabled={page === totalPages || loading}
+        disabled={(page === totalPages || totalPages === 0) || loading}
         className="sm:px-4 px-2 py-1 text-sm"
       >
         Siguiente
       </Button>
-    </div>
+    </div>)
   )
 }

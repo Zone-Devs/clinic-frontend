@@ -320,7 +320,7 @@ export default function StageContainer({ initialStages }: Props) {
           ))}
         </div>
       ) : stages.length === 0 ? (
-        <NoDataFallback type="etapa"/>
+        <NoDataFallback pronoun="una" type="etapa"/>
       ) : (
       <DndContext
         sensors={sensors}

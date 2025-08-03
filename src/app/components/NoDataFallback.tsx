@@ -4,10 +4,11 @@ import { PlusCircle } from 'lucide-react'
 
 interface NoDataFallback {
   type: string
+  pronoun: string
   needsCreateLabel?: boolean
 }
 
-export default function NoDataFallback({ type, needsCreateLabel=false }: NoDataFallback) {
+export default function NoDataFallback({ type, pronoun, needsCreateLabel=false }: NoDataFallback) {
   return (
     <div className="
     flex flex-col items-center justify-center 
@@ -20,7 +21,7 @@ export default function NoDataFallback({ type, needsCreateLabel=false }: NoDataF
         No se encontraron {type}s
     </h3>
     <p className="text-center text-gray-500">
-        Intenta agregar una {type} haciendo click en el botón{' '}
+        Intenta agregar {pronoun} {type} haciendo click en el botón{' '}
         <strong>+ {needsCreateLabel ? "Crear" : "Añadir"} {type}</strong> que está arriba.
     </p>
     </div>

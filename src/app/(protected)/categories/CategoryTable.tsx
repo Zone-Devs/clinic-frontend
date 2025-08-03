@@ -65,7 +65,7 @@ export function CategoryTable({ data, onEdit, onDelete }: CategoryTableProps) {
             </TableRow>
           ))}
         </TableBody>
-      </Table> : <NoDataFallback type="categoría" needsCreateLabel={true}/>}
+      </Table> : <NoDataFallback pronoun="una" type="categoría" needsCreateLabel={true}/>}
     </div>
   )
 }

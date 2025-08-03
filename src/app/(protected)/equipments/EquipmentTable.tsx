@@ -70,7 +70,7 @@ export function EquipmentTable({ data, onEdit, onDelete }: EquipmentTableProps) 
             </TableRow>
           ))}
         </TableBody>
-      </Table> : <NoDataFallback type="categoría" needsCreateLabel={true}/>}
+      </Table> : <NoDataFallback pronoun="un" type="equipo" needsCreateLabel={true}/>}
     </div>
   )
 }

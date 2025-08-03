@@ -29,7 +29,7 @@ export const Counter = ({
   return (
     <div className="flex flex-col gap-1">
       <span className="text-sm font-medium">Cantidad</span>
-      <div className="flex items-center justify-center bg-[#0e0e0e] px-4 py-2 rounded-full space-x-4">
+      <div className="flex items-center justify-center bg-muted px-4 py-2 rounded-full space-x-4">
         <button
           onClick={() => handleChange(-1)}
           disabled={value <= min}
@@ -38,7 +38,7 @@ export const Counter = ({
           −
         </button>
 
-        <div className="w-6 text-white text-lg relative h-6 overflow-hidden">
+        <div className="w-6 text-black text-lg relative h-6 overflow-hidden">
           <AnimatePresence initial={false}>
             <motion.span
               key={value}
