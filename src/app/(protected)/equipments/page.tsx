@@ -27,7 +27,7 @@ export default async function CategoriesPage() {
   return (
     <main className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Equipos Médicos</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Equipo Médico</h1>
         <p className="text-sm text-gray-400">
           Sección donde puedes ver y gestionar las equipos médicos.
         </p>

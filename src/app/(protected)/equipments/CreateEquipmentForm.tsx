@@ -68,8 +68,8 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
           activeColor="#0f3e44"
           completeColor="#10b981"
           defaultBarColor="#d1d5db"
-          size={28}
-          circleFontSize={14}
+          size={38}
+          circleFontSize={18}
         />
 
         <DialogTitle className="mt-4">

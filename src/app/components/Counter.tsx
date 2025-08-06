@@ -33,9 +33,9 @@ export const Counter = ({
         <button
           onClick={() => handleChange(-1)}
           disabled={value <= min}
-          className="w-8 h-8 rounded-full bg-[#0f3e44] hover:bg-[#14555e] text-white text-lg transition disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-8 h-8 rounded-full bg-[#0f3e44] hover:bg-[#14555e] text-white text-lg transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
-          −
+          -
         </button>
 
         <div className="w-6 text-black text-lg relative h-6 overflow-hidden">
@@ -56,7 +56,7 @@ export const Counter = ({
         <button
           onClick={() => handleChange(1)}
           disabled={value >= max}
-          className="w-8 h-8 rounded-full bg-[#0f3e44] hover:bg-[#14555e] text-white text-lg transition disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-8 h-8 rounded-full bg-[#0f3e44] hover:bg-[#14555e] text-white text-lg transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
           +
         </button>
