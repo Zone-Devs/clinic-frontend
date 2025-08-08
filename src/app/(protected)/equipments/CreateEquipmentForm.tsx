@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Stepper from 'react-stepper-horizontal'
 import { Button } from '@/components/ui/button'
@@ -19,28 +19,28 @@ import { ImageUploadBox } from '@/app/components/ImageUploadBox'
 // import clsx from 'clsx'
 
 export interface Equipment {
-  id:               string;
-  serial:           number;
-  name:             string;
-  description:      string;
-  model:            string;
-  imageURL:         null;
-  isInProgress:     boolean;
-  stageID:          null;
-  qrs:              Qr[];
-  createdAt:        Date;
-  updatedAt:        null;
+  id: string;
+  serial: number;
+  name: string;
+  description: string;
+  model: string;
+  imageURL: null;
+  isInProgress: boolean;
+  stageID: null;
+  qrs: Qr[];
+  createdAt: Date;
+  updatedAt: null;
   createdLocalTime: Date;
   updatedLocalTime: null;
 }
 
 export interface Qr {
-  id:               string;
-  serial:           number;
-  equipmentID:      string;
-  qrImageURL:       string;
-  createdAt:        Date;
-  updatedAt:        Date;
+  id: string;
+  serial: number;
+  equipmentID: string;
+  qrImageURL: string;
+  createdAt: Date;
+  updatedAt: Date;
   createdLocalTime: Date;
   updatedLocalTime: Date;
 }
@@ -56,6 +56,47 @@ interface Props {
   isLoading?: boolean
   createdItems?: { id: string; name: string }[] // (no usado ahora)
 }
+
+function UploadButton({
+  onSelect,
+  disabled,
+  label = 'Subir imagen',
+  className,                     // <— nuevo
+}: {
+  onSelect: (file: File) => void
+  disabled?: boolean
+  label?: string
+  className?: string             // <— nuevo
+}) {
+  const ref = useRef<HTMLInputElement | null>(null)
+
+  return (
+    <>
+      <input
+        ref={ref}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) onSelect(file)
+          e.currentTarget.value = ''
+        }}
+      />
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => ref.current?.click()}
+        disabled={disabled}
+        className={className}     // <— usa className
+      >
+        <Upload className="h-4 w-4 mr-2" />
+        {label}
+      </Button>
+    </>
+  )
+}
+
 
 export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   onConfirm,
@@ -190,29 +231,7 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
                 </div>
               </RadioGroup>
 
-              {individualUpload ? (
-/*                 <div className="grid gap-3 max-h-[220px] overflow-y-auto pr-1">
-                  {createdList.map((eq) => (
-                    <div
-                      key={eq.id}
-                      className="border rounded px-4 py-3 flex items-center justify-between"
-                    >
-                      <span className="truncate">{eq.name}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) {
-                            // TODO: subirImagenIndividual(eq.id, file)
-                          }
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div> */
-                <div></div>
-              ) : (
+              {!individualUpload && (
                   <div className="flex items-center gap-2 cursor-pointer">
                     <ImageUploadBox
                       onFile={(file) => {
@@ -235,28 +254,41 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
                   </p>
                 ) : (
                   createdList.map((eq) => {
-                    const qrUrl = getPrimaryQrUrl(eq)
                     return (
                       <div
                         key={eq.id}
-                        className="border rounded px-4 py-3 flex items-center justify-between"
+                        className="border rounded px-4 py-3 flex items-center gap-3"
                       >
-                        <div className="min-w-0">
+                        {/* Izquierda: info del equipo */}
+                        <div className="min-w-0 flex-1">
                           <p className="font-medium truncate">{eq.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Serial: {eq.serial}
-                          </p>
+                          <p className="text-xs text-muted-foreground">Serial: {eq.serial}</p>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewQr(eq)}
-                          disabled={!qrUrl}
-                          title={qrUrl ? 'Ver QR' : 'QR no disponible'}
-                        >
-                          <QrCode className="h-4 w-4 mr-1" />
-                          Ver QR
-                        </Button>
+
+                        {/* Derecha: acciones agrupadas */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewQr(eq)}
+                            disabled={!getPrimaryQrUrl(eq)}
+                            title={getPrimaryQrUrl(eq) ? 'Ver QR' : 'QR no disponible'}
+                            className="w-[112px] justify-center"    // ancho fijo para alinear
+                          >
+                            <QrCode className="h-4 w-4 mr-1" />
+                            Ver QR
+                          </Button>
+
+                          {individualUpload && (
+                            <UploadButton
+                              label="Subir imagen"
+                              onSelect={(file) => {
+                                // TODO: subirImagenIndividual(eq.id, file)
+                              }}
+                              className="w-[130px] justify-center"   // mismo alto, ancho consistente
+                            />
+                          )}
+                        </div>
                       </div>
                     )
                   })
