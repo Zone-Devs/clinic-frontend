@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Pencil, Trash } from 'lucide-react'
 import NoDataFallback from '@/app/components/NoDataFallback'
 
-export interface Equipment {
+export interface InitialEquipmentProps {
   id: string
   name: string
   description: string
@@ -17,8 +17,8 @@ export interface Equipment {
 }
 
 interface EquipmentTableProps {
-  data: Equipment[]
-  onEdit: (category: Equipment) => void
+  data: InitialEquipmentProps[]
+  onEdit: (equipment: InitialEquipmentProps) => void
   onDelete: (id: string, name: string) => void
 }
 

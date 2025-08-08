@@ -10,28 +10,57 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Counter } from '@/app/components/Counter'
-import { Save, Upload, X } from 'lucide-react'
-import clsx from 'clsx'
+import { ArrowRight, Upload, X, QrCode } from 'lucide-react'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
+import { ImageUploadBox } from '@/app/components/ImageUploadBox'
+
+// import clsx from 'clsx'
+
+export interface Equipment {
+  id:               string;
+  serial:           number;
+  name:             string;
+  description:      string;
+  model:            string;
+  imageURL:         null;
+  isInProgress:     boolean;
+  stageID:          null;
+  qrs:              Qr[];
+  createdAt:        Date;
+  updatedAt:        null;
+  createdLocalTime: Date;
+  updatedLocalTime: null;
+}
+
+export interface Qr {
+  id:               string;
+  serial:           number;
+  equipmentID:      string;
+  qrImageURL:       string;
+  createdAt:        Date;
+  updatedAt:        Date;
+  createdLocalTime: Date;
+  updatedLocalTime: Date;
+}
 
 interface Props {
-  onConfirm: (data: {
+  onConfirm: (payload: {
     name: string
     description: string
     model: string
     quantity: number
-  }) => Promise<void>
+  }) => Promise<Equipment[]>
   onCancel: () => void
   isLoading?: boolean
-  createdItems?: { id: string; name: string }[]
+  createdItems?: { id: string; name: string }[] // (no usado ahora)
 }
 
 export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   onConfirm,
   onCancel,
   isLoading = false,
-  createdItems = [],
 }: Props) {
   const [step, setStep] = useState<1 | 2>(1)
 
@@ -40,6 +69,7 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   const [model, setModel] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [individualUpload, setIndividualUpload] = useState(false)
+  const [createdList, setCreatedList] = useState<Equipment[]>([])
 
   const handleSubmit = async () => {
     try {
@@ -50,18 +80,26 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
         quantity,
       })
 
-      if (created) {
-        setStep(2) // Avanza solo si realmente se creó
+      if (Array.isArray(created) && created.length > 0) {
+        setCreatedList(created)
+        setStep(2)
       }
     } catch (err) {
       console.error('Error al crear equipo:', err)
     }
   }
 
+  const getPrimaryQrUrl = (e: Equipment) => e.qrs?.[0]?.qrImageURL
+  const handleViewQr = (e: Equipment) => {
+    const url = getPrimaryQrUrl(e)
+    if (!url) return
+    const proxy = `/api/proxy/qr?src=${encodeURIComponent(url)}`
+    window.open(proxy, '_blank', 'noopener,noreferrer')
+  }
 
   return (
     <>
-      <DialogHeader className="mb-4">
+      <DialogHeader>
         <Stepper
           steps={[{ title: 'Equipo' }, { title: 'Imagen' }]}
           activeStep={step - 1}
@@ -78,7 +116,7 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
         <DialogDescription>
           {step === 1
             ? 'Introduce un nombre y una descripción para tu equipo.'
-            : 'Puedes subir una imagen general o individual para cada equipo creado.'}
+            : 'Primero revisa los equipos creados y visualiza sus QR. Luego puedes subir una imagen general o individual.'}
         </DialogDescription>
       </DialogHeader>
 
@@ -90,6 +128,7 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
         transition={{ duration: 0.2 }}
         className="py-2"
       >
+        {/* Step logic */}
         {step === 1 ? (
           <div className="grid gap-4">
             <label>
@@ -133,52 +172,99 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={individualUpload}
-                onCheckedChange={(v) => setIndividualUpload(Boolean(v))}
-              />
-              <span>Subir imagen individual</span>
-            </div>
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <RadioGroup
+                value={individualUpload ? 'individual' : 'single'}
+                onValueChange={(v) => setIndividualUpload(v === 'individual')}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+              >
+                <div className="flex items-center gap-2 border rounded px-3 py-2">
+                  <RadioGroupItem id="mode-single" value="single" className='text-[#10B981] data-[state=checked]:border-[#10B981] cursor-pointer'/>
+                  <Label htmlFor="mode-single" className="text-sm cursor-pointer">Subir una sola imagen</Label>
+                </div>
 
-            <div className="grid gap-3 max-h-[250px] overflow-y-auto pr-1">
-              {createdItems.map((item, idx) => (
-                <div
-                  key={item.id ?? idx}
-                  className="border rounded px-4 py-3 flex justify-between items-center"
-                >
-                  <span>{item.name}</span>
-                  {individualUpload && (
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) {
-                          // subirImagen(item.id, file)
-                        }
+                <div className="flex items-center gap-2 border rounded px-3 py-2">
+                  <RadioGroupItem id="mode-individual" value="individual" className='text-[#10B981] data-[state=checked]:border-[#10B981] cursor-pointer'/>
+                  <Label htmlFor="mode-individual" className="text-sm cursor-pointer">Subir imagen individual</Label>
+                </div>
+              </RadioGroup>
+
+              {individualUpload ? (
+/*                 <div className="grid gap-3 max-h-[220px] overflow-y-auto pr-1">
+                  {createdList.map((eq) => (
+                    <div
+                      key={eq.id}
+                      className="border rounded px-4 py-3 flex items-center justify-between"
+                    >
+                      <span className="truncate">{eq.name}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            // TODO: subirImagenIndividual(eq.id, file)
+                          }
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div> */
+                <div></div>
+              ) : (
+                  <div className="flex items-center gap-2 cursor-pointer">
+                    <ImageUploadBox
+                      onFile={(file) => {
+                        // TODO: subirImagenGlobal(file)
                       }}
+                      text="Sube una imagen para todos"
+                      subtext="PNG, JPG…"
+                      className="w-full"
                     />
-                  )}
-                </div>
-              ))}
-
-              {!individualUpload && (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        // subirImagenGlobal(file)
-                      }
-                    }}
-                  />
-                </div>
+                  </div>
               )}
             </div>
+            {/* Lista de equipos creados + Ver QR */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Equipos creados</h4>
+              <div className="grid gap-3 max-h-[260px] overflow-y-auto pr-1">
+                {createdList.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No se encontraron equipos creados en esta operación.
+                  </p>
+                ) : (
+                  createdList.map((eq) => {
+                    const qrUrl = getPrimaryQrUrl(eq)
+                    return (
+                      <div
+                        key={eq.id}
+                        className="border rounded px-4 py-3 flex items-center justify-between"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{eq.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Serial: {eq.serial}
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewQr(eq)}
+                          disabled={!qrUrl}
+                          title={qrUrl ? 'Ver QR' : 'QR no disponible'}
+                        >
+                          <QrCode className="h-4 w-4 mr-1" />
+                          Ver QR
+                        </Button>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* Subida de imagen (general / individual) */}
           </div>
         )}
       </motion.div>
@@ -194,15 +280,14 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
             disabled={!name.trim() || !description.trim()}
             isLoading={isLoading}
           >
-            <Save className="mr-2" />
             Siguiente
+            <ArrowRight className="ml-2" />
           </Button>
         ) : (
           <Button onClick={onCancel}>
-  <Upload className="mr-2" />
-  Finalizar
-</Button>
-
+            <Upload className="mr-2" />
+            Finalizar
+          </Button>
         )}
       </DialogFooter>
     </>

@@ -8,11 +8,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { Equipment } from './EquipmentTable'
+import { InitialEquipmentProps } from './EquipmentTable'
 import { Save, X } from 'lucide-react'
 
 interface Props {
-  equipment: Equipment
+  equipment: InitialEquipmentProps
   onConfirm: (data: { name: string; description: string }) => void
   onCancel: () => void
   isLoading?: boolean

@@ -1,21 +1,20 @@
-// app/categories/page.tsx
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { EquipmentManager } from './EquipmentManager'
 import ErrorFallback from '@/app/components/ErrorFallback'
 
 const serverURL = process.env.BACKEND_URL || 'http://localhost:3000'
-export default async function CategoriesPage() {
+export default async function EquipmentsPage() {
   const token = (await cookies()).get('token')?.value
   if (!token) redirect('/login')
-  let categories = []
+  let equipments = []
   try {
-    const res = await fetch(`${serverURL}/api/equipment-category`, {
+    const res = await fetch(`${serverURL}/api/equipments`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
     })
     const json = await res.json()
-    categories = Array.isArray(json) ? json : json.data
+    equipments = Array.isArray(json) ? json : json.data
   } catch (err: any) {
       return (
       <main className="p-6">
@@ -32,7 +31,7 @@ export default async function CategoriesPage() {
           Sección donde puedes ver y gestionar las equipos médicos.
         </p>
       </div>
-      <EquipmentManager initial={categories} />
+      <EquipmentManager initial={equipments} />
     </main>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Equipment, EquipmentTable } from './EquipmentTable'
+import { InitialEquipmentProps, EquipmentTable } from './EquipmentTable'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import axiosClient from '@/utils/axiosClient'
@@ -10,23 +10,23 @@ import { Plus, Search, Trash, X, XIcon } from 'lucide-react'
 import debounce from 'lodash.debounce'
 import { ClassicPagination } from '@/app/components/Pagination'
 import Spinner from '@/app/components/Spinner'
-import { CreateEquipmentForm } from './CreateEquipmentForm'
+import { Equipment, CreateEquipmentForm } from './CreateEquipmentForm'
 import { EditEquipmentForm } from './EditEquipmentForm'
 
 
 interface EquipmentManagerProps {
-  initial: Equipment[]
+  initial: InitialEquipmentProps[]
 }
 
 
 export function EquipmentManager({ initial }: EquipmentManagerProps) {
-  const [equipments, setEquipments] = useState<Equipment[]>(initial)
+  const [equipments, setEquipments] = useState<InitialEquipmentProps[]>(initial)
   // — Crear
   const [creating, setCreating] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
 
   // — Editar
-  const [editing, setEditing] = useState<Equipment | null>(null)
+  const [editing, setEditing] = useState<InitialEquipmentProps | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
 
   // — Eliminar
@@ -85,24 +85,25 @@ export function EquipmentManager({ initial }: EquipmentManagerProps) {
   }, [debouncedSearch, page, limit])
 
   // ========== CREATE ==========
-  async function handleCreate(payload: Omit<Equipment, 'id'>) {
+  async function handleCreate(payload: {
+    name: string
+    description: string
+    model: string
+    quantity: number
+  }): Promise<Equipment[]> {
     setIsCreating(true)
     try {
-      const resp = await axiosClient.post<Equipment>('/api/equipments', payload)
-      const newEquipment = resp.data
-      if (!newEquipment) {
+      const resp = await axiosClient.post<Equipment[]>('/api/equipments', payload)
+      if (!resp?.data || resp.data?.length === 0) {
         throw new Error('Error al crear Equipo')
       }
-
-      toast.success('Equipo creado')
-
-      // Aquí NO cierres el dialog
-      // Solo guarda el equipo creado en un estado (si es necesario)
+      toast.success(`${resp?.data.length > 1 ? 'Equipos creados' : 'Equipo creado'} correctamente`)
       await loadEquipments()
       setPage(1)
-      return newEquipment // <-- retorna para que el componente hijo avance al paso 2
+      return resp.data
     } catch {
       toast.error('Error al crear Equipo')
+      return []
     } finally {
       setIsCreating(false)
     }
@@ -110,10 +111,10 @@ export function EquipmentManager({ initial }: EquipmentManagerProps) {
 
 
   // ========== UPDATE ==========
-  async function handleEdit(id: string, payload: Omit<Equipment, 'id'>) {
+  async function handleEdit(id: string, payload: Omit<InitialEquipmentProps, 'id'>) {
     setIsUpdating(true)
     try {
-      const resp = await axiosClient.patch<Equipment>(`api/equipments/${id}`, payload)
+      const resp = await axiosClient.patch<InitialEquipmentProps>(`api/equipments/${id}`, payload)
       const updatedEquipment = resp.data
       setEquipments(prev =>
         prev.map(c => (c.id === id ? updatedEquipment : c))
@@ -229,7 +230,11 @@ export function EquipmentManager({ initial }: EquipmentManagerProps) {
 
       {/* ——— Crear Equipo ——— */}
       <Dialog open={creating} onOpenChange={setCreating}>
-        <DialogContent>
+        <DialogContent
+          className='min-w-[45%]'
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
           <CreateEquipmentForm
             onConfirm={handleCreate}
             onCancel={() => setCreating(false)}

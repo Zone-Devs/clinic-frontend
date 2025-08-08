@@ -5,7 +5,6 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { AnimatePresence, motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import {
   DialogHeader,
@@ -14,20 +13,14 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { RefreshCcw, X } from 'lucide-react'
-import type { Transition } from "framer-motion"
+
+import { FormField } from '@/app/components/forms/FormField'
 
 const stageSchema = z.object({
-  name: z
-    .string()
-    .min(3, 'El nombre debe tener al menos 3 caracteres')
-    .max(255, 'Máximo 255 caracteres'),
-  description: z
-    .string()
-    .min(3, 'La descripción debe tener al menos 3 caracteres')
-    .max(255, 'Máximo 255 caracteres'),
+  name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres').max(255, 'Máximo 255 caracteres'),
+  description: z.string().min(3, 'La descripción debe tener al menos 3 caracteres').max(255, 'Máximo 255 caracteres'),
   color: z.string().nonempty(),
 })
-
 type FormValues = z.infer<typeof stageSchema>
 
 interface Props {
@@ -37,11 +30,7 @@ interface Props {
   onCancel: () => void
 }
 
-const transitionParams: Transition = {
-  opacity: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
-  height: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
-  layout: { type: 'spring', stiffness: 300, damping: 30 }
-}
+const baseInput = 'mt-1 block w-full rounded border px-3 py-2'
 
 export const EditStageForm = React.memo(function EditStageForm({
   initial,
@@ -67,84 +56,44 @@ export const EditStageForm = React.memo(function EditStageForm({
       </DialogHeader>
 
       <form onSubmit={handleSubmit(onConfirm)} className="space-y-4">
-        {/* Nombre */}
-        <div>
-          <label className="block">
-            <span className="text-sm font-medium">Nombre</span>
-            <input
-              {...register('name')}
-              type="text"
-              className={`mt-1 block w-full rounded border px-3 py-2 ${
-                errors.name ? 'border-red-500' : ''
-              }`}
-            />
-          </label>
-          <AnimatePresence initial={false} mode="wait">
-            {errors.name && (
-              <motion.p
-                layout
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={transitionParams}
-                className="mt-1 text-sm text-red-600 overflow-hidden"
-              >
-                {errors.name.message}
-              </motion.p>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Descripción */}
-        <div>
-          <label className="block">
-            <span className="text-sm font-medium">Descripción</span>
-            <textarea
-              {...register('description')}
-              rows={3}
-              className={`mt-1 block w-full rounded border px-3 py-2 ${
-                errors.description ? 'border-red-500' : ''
-              }`}
-            />
-          </label>
-          <AnimatePresence initial={false} mode="wait">
-            {errors.description && (
-              <motion.p
-                layout
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={transitionParams}
-                className="mt-1 text-sm text-red-600 overflow-hidden"
-              >
-                {errors.description.message}
-              </motion.p>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Color */}
-        <div className="flex items-center gap-2">
-          <label htmlFor="color-picker" className="text-sm font-medium">
-            Color
-          </label>
+        <FormField label="Nombre" error={errors.name?.message}>
           <input
-            {...register('color')}
-            id="color-picker"
-            type="color"
-            className="h-7 w-7 rounded-full border-2 p-0 appearance-none cursor-pointer"
+            {...register('name')}
+            type="text"
+            className={`${baseInput} ${errors.name ? 'border-red-500' : ''}`}
+            placeholder="Ej. Inicio"
+            aria-invalid={!!errors.name}
+            aria-describedby="name-error"
           />
-        </div>
+        </FormField>
+
+        <FormField label="Descripción" error={errors.description?.message}>
+          <textarea
+            {...register('description')}
+            rows={3}
+            className={`${baseInput} ${errors.description ? 'border-red-500' : ''}`}
+            placeholder="Una breve descripción de la etapa"
+            aria-invalid={!!errors.description}
+            aria-describedby="desc-error"
+          />
+        </FormField>
+
+        <FormField label="Color">
+          <div className="flex items-center gap-2">
+            <input
+              {...register('color')}
+              id="color-picker"
+              type="color"
+              className="h-7 w-7 rounded-full border-2 p-0 appearance-none cursor-pointer"
+            />
+          </div>
+        </FormField>
 
         <DialogFooter className="flex justify-end gap-2">
           <Button variant="outline" type="button" onClick={onCancel} disabled={isLoading}>
             <X /> Cancelar
           </Button>
-          <Button
-            type="submit"
-            isLoading={isLoading}
-            disabled={!isValid || isLoading}
-          >
+          <Button type="submit" isLoading={isLoading} disabled={!isValid || isLoading}>
             {!isLoading && <RefreshCcw />}
             Actualizar
           </Button>

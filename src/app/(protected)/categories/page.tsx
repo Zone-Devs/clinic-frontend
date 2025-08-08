@@ -15,7 +15,6 @@ export default async function CategoriesPage() {
       cache: 'no-store',
     })
     const json = await res.json()
-    console.log('🚬 ===> :18 ===> CategoriesPage ===> json:', json);
     categories = Array.isArray(json) ? json : json.data
   } catch (err: any) {
       return (

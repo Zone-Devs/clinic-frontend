@@ -12,7 +12,6 @@ export function ClassicPagination({
   onPageChange: (p: number) => void
   loading?: boolean
 }) {
-  console.log({page}, {totalPages})
   const maxVisiblePages = 3
   const pages = []
 
