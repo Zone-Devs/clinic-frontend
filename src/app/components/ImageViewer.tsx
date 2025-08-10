@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { X, ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, Download, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import React from 'react'
 import { DialogTitle } from '@radix-ui/react-dialog'
@@ -20,8 +20,14 @@ export function ImageViewer({
   onIndexChange: (i: number) => void
 }) {
   const [scale, setScale] = React.useState(1)
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
 
-  React.useEffect(() => { setScale(1) }, [index, open])
+  React.useEffect(() => {
+    setScale(1)
+    setLoading(true)
+    setError(null)
+  }, [index, open, items[index]?.src])
 
   const prev = () => onIndexChange((index - 1 + items.length) % items.length)
   const next = () => onIndexChange((index + 1) % items.length)
@@ -61,21 +67,33 @@ export function ImageViewer({
           </div>
         </div>
 
-        {/* Lienzo */}
-        <div className="h-[70vh] bg-background flex items-center justify-center">
-          {current && (
+        <div className="relative h-[70vh] bg-background flex items-center justify-center">
+          {/* Spinner centrado */}
+          {loading && !error && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          )}
+
+          {/* Error simple */}
+          {error ? (
+            <p className="text-sm text-muted-foreground">No se pudo cargar la imagen.</p>
+          ) : current ? (
             <motion.img
               key={current.src}
               src={current.src}
               alt="QR"
               initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
+              animate={{ opacity: loading ? 0 : 1, scale: 1 }}
               transition={{ duration: 0.15 }}
-              className="max-h-full max-w-full object-contain"
+              className={`max-h-full max-w-full object-contain ${loading ? 'opacity-0' : ''}`}
               style={{ transform: `scale(${scale})` }}
+              onLoad={() => setLoading(false)}
+              onError={() => { setLoading(false); setError('error') }}
             />
-          )}
+          ) : null}
         </div>
+
       </DialogContent>
     </Dialog>
   )

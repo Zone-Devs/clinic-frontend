@@ -16,6 +16,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { ImageUploadBox } from '@/app/components/ImageUploadBox'
 import { ImageViewer } from '@/app/components/ImageViewer'
+import axiosClient from '@/utils/axiosClient'
+import { toast } from 'react-toastify'
 
 export interface Equipment {
   id: string; serial: number; name: string; description: string; model: string;
@@ -55,6 +57,8 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   // dentro del componente
   const [viewerOpen, setViewerOpen] = useState(false)
   const [viewerIndex, setViewerIndex] = useState(0)
+  // Uploader
+  const [isUploadingAll, setIsUploadingAll] = useState(false)
 
   const qrItems = React.useMemo(() => {
     return createdList.flatMap(eq =>
@@ -97,6 +101,38 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
       setTargetId(null)
     }
   }
+
+  const uploadGlobalImage = async (file: File) => {
+    console.log('🚬 ===> uploadGlobalImage ===> createdList:', createdList);
+    if (!createdList.length) {
+      toast.info('No hay equipos para actualizar.')
+      return
+    }
+
+    setIsUploadingAll(true)
+    try {
+      // misma imagen para todos los equipos creados
+      const requests = createdList.map((eq) => {
+        const fd = new FormData()
+        fd.append('file', file)
+        return axiosClient.post(`/api/equipments/${eq.id}/equipment/images`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+      })
+
+      const results = await Promise.allSettled(requests)
+      const ok = results.filter(r => r.status === 'fulfilled').length
+      const fail = results.length - ok
+
+      if (ok)  toast.success(`Imagen subida a ${ok} equipo${ok > 1 ? 's' : ''}.`)
+      if (fail) toast.error(`${fail} subida${fail > 1 ? 's' : ''} fallida${fail > 1 ? 's' : ''}.`)
+    } catch (e) {
+      toast.error('Error al subir la imagen.')
+    } finally {
+      setIsUploadingAll(false)
+    }
+  }
+
   // -----------------------------------------------------------
 
   const handleSubmit = async () => {
@@ -213,19 +249,17 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
                   <Label htmlFor="mode-individual" className="text-sm cursor-pointer w-full h-full">Subir imagen individual</Label>
                 </div>
               </RadioGroup>
-
               {!individualUpload && (
                 <div className="flex items-center gap-2 cursor-pointer">
                   <ImageUploadBox
-                    onFile={(file) => {
-                      // TODO: subirImagenGlobal(file)
-                    }}
-                    text="Sube una imagen para todos"
+                    onFile={(file) => uploadGlobalImage(file)}
+                    text={isUploadingAll ? 'Subiendo imagen…' : 'Sube una imagen para todos'}
                     subtext="PNG, JPG…"
                     className="w-full"
                   />
                 </div>
               )}
+
             </div>
 
             {/* Input global oculto para subir imagen individual */}
@@ -315,7 +349,7 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
             <ArrowRight className="ml-2" />
           </Button>
         ) : (
-          <Button onClick={onCancel}>
+          <Button onClick={onCancel} disabled={isUploadingAll}>
             <Upload className="mr-2" />
             Finalizar
           </Button>
