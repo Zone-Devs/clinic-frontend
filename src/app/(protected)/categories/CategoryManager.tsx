@@ -279,7 +279,7 @@ export function CategoryManager({ initial }: CategoryManagerProps) {
               onClick={confirmDelete}
               isLoading={isDeleting}
             >
-              <Trash />
+              {!isDeleting && <Trash />}
               Eliminar
             </Button>
           </DialogFooter>

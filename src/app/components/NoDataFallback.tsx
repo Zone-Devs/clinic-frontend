@@ -22,7 +22,7 @@ export default function NoDataFallback({ type, pronoun, needsCreateLabel=false }
     </h3>
     <p className="text-center text-gray-500">
         Intenta agregar {pronoun} {type} haciendo click en el botón{' '}
-        <strong>+ {needsCreateLabel ? "Crear" : "Añadir"} {type}</strong> que está arriba.
+        <strong>+ {needsCreateLabel ? "Crear" : "Añadir"} {type}</strong> que se encuentra en la parte superior derecha.
     </p>
     </div>
   )

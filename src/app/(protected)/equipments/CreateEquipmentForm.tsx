@@ -15,88 +15,23 @@ import { ArrowRight, Upload, X, QrCode } from 'lucide-react'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { ImageUploadBox } from '@/app/components/ImageUploadBox'
-
-// import clsx from 'clsx'
+import { ImageViewer } from '@/app/components/ImageViewer'
 
 export interface Equipment {
-  id: string;
-  serial: number;
-  name: string;
-  description: string;
-  model: string;
-  imageURL: null;
-  isInProgress: boolean;
-  stageID: null;
-  qrs: Qr[];
-  createdAt: Date;
-  updatedAt: null;
-  createdLocalTime: Date;
-  updatedLocalTime: null;
+  id: string; serial: number; name: string; description: string; model: string;
+  imageURL: null; isInProgress: boolean; stageID: null; qrs: Qr[];
+  createdAt: Date; updatedAt: null; createdLocalTime: Date; updatedLocalTime: null;
 }
-
 export interface Qr {
-  id: string;
-  serial: number;
-  equipmentID: string;
-  qrImageURL: string;
-  createdAt: Date;
-  updatedAt: Date;
-  createdLocalTime: Date;
-  updatedLocalTime: Date;
+  id: string; serial: number; equipmentID: string; qrImageURL: string;
+  createdAt: Date; updatedAt: Date; createdLocalTime: Date; updatedLocalTime: Date;
 }
 
 interface Props {
-  onConfirm: (payload: {
-    name: string
-    description: string
-    model: string
-    quantity: number
-  }) => Promise<Equipment[]>
+  onConfirm: (payload: { name: string; description: string; model: string; quantity: number }) => Promise<Equipment[]>
   onCancel: () => void
   isLoading?: boolean
-  createdItems?: { id: string; name: string }[] // (no usado ahora)
 }
-
-function UploadButton({
-  onSelect,
-  disabled,
-  label = 'Subir imagen',
-  className,                     // <— nuevo
-}: {
-  onSelect: (file: File) => void
-  disabled?: boolean
-  label?: string
-  className?: string             // <— nuevo
-}) {
-  const ref = useRef<HTMLInputElement | null>(null)
-
-  return (
-    <>
-      <input
-        ref={ref}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0]
-          if (file) onSelect(file)
-          e.currentTarget.value = ''
-        }}
-      />
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() => ref.current?.click()}
-        disabled={disabled}
-        className={className}     // <— usa className
-      >
-        <Upload className="h-4 w-4 mr-2" />
-        {label}
-      </Button>
-    </>
-  )
-}
-
 
 export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   onConfirm,
@@ -109,8 +44,60 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   const [description, setDescription] = useState('')
   const [model, setModel] = useState('')
   const [quantity, setQuantity] = useState(1)
+
   const [individualUpload, setIndividualUpload] = useState(false)
   const [createdList, setCreatedList] = useState<Equipment[]>([])
+
+  // --- Input global reutilizable para uploads individuales ---
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [targetId, setTargetId] = useState<string | null>(null)
+  const [uploadingById, setUploadingById] = useState<Record<string, boolean>>({})
+  // dentro del componente
+  const [viewerOpen, setViewerOpen] = useState(false)
+  const [viewerIndex, setViewerIndex] = useState(0)
+
+  const qrItems = React.useMemo(() => {
+    return createdList.flatMap(eq =>
+      (eq.qrs ?? []).map(q => ({
+        // usa el proxy para pasar el bearer
+        src: `/api/proxy/qr?src=${encodeURIComponent(q.qrImageURL)}`,
+        title: `${eq.name} • Serial: ${eq.serial}`,
+        __raw: q.qrImageURL, // para encontrar índice
+      }))
+    )
+  }, [createdList])
+
+  const openViewerFor = (eq: Equipment) => {
+    const first = eq.qrs?.[0]?.qrImageURL
+    if (!first) return
+    const idx = qrItems.findIndex(i => i.__raw === first)
+    setViewerIndex(idx >= 0 ? idx : 0)
+    setViewerOpen(true)
+  }
+
+  const triggerPick = (id: string) => {
+    setTargetId(id)
+    fileInputRef.current?.click()
+  }
+
+  const handlePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.currentTarget.value = '' // permite seleccionar el mismo archivo de nuevo
+    if (!file || !targetId) return
+    try {
+      setUploadingById((s) => ({ ...s, [targetId]: true }))
+      // TODO: subirImagenIndividual(targetId, file)
+      // const fd = new FormData()
+      // fd.append('image', file)
+      // await axiosClient.post(`/api/equipments/${targetId}/image`, fd, {
+      //   headers: { 'Content-Type': 'multipart/form-data' }
+      // })
+    } finally {
+      setUploadingById((s) => ({ ...s, [targetId!]: false }))
+      setTargetId(null)
+    }
+  }
+  // -----------------------------------------------------------
 
   const handleSubmit = async () => {
     try {
@@ -120,7 +107,6 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
         model: model.trim(),
         quantity,
       })
-
       if (Array.isArray(created) && created.length > 0) {
         setCreatedList(created)
         setStep(2)
@@ -150,7 +136,6 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
           size={38}
           circleFontSize={18}
         />
-
         <DialogTitle className="mt-4">
           {step === 1 ? 'Crear nuevo equipo' : 'Subir imagen del equipo'}
         </DialogTitle>
@@ -169,7 +154,6 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
         transition={{ duration: 0.2 }}
         className="py-2"
       >
-        {/* Step logic */}
         {step === 1 ? (
           <div className="grid gap-4">
             <label>
@@ -221,30 +205,39 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
                 className="grid grid-cols-1 sm:grid-cols-2 gap-3"
               >
                 <div className="flex items-center gap-2 border rounded px-3 py-2">
-                  <RadioGroupItem id="mode-single" value="single" className='text-[#10B981] data-[state=checked]:border-[#10B981] cursor-pointer'/>
-                  <Label htmlFor="mode-single" className="text-sm cursor-pointer">Subir una sola imagen</Label>
+                  <RadioGroupItem id="mode-single" value="single" className="text-[#10B981] data-[state=checked]:border-[#10B981] cursor-pointer" />
+                  <Label htmlFor="mode-single" className="text-sm cursor-pointer w-full h-full">Subir una sola imagen</Label>
                 </div>
-
                 <div className="flex items-center gap-2 border rounded px-3 py-2">
-                  <RadioGroupItem id="mode-individual" value="individual" className='text-[#10B981] data-[state=checked]:border-[#10B981] cursor-pointer'/>
-                  <Label htmlFor="mode-individual" className="text-sm cursor-pointer">Subir imagen individual</Label>
+                  <RadioGroupItem id="mode-individual" value="individual" className="text-[#10B981] data-[state=checked]:border-[#10B981] cursor-pointer" />
+                  <Label htmlFor="mode-individual" className="text-sm cursor-pointer w-full h-full">Subir imagen individual</Label>
                 </div>
               </RadioGroup>
 
               {!individualUpload && (
-                  <div className="flex items-center gap-2 cursor-pointer">
-                    <ImageUploadBox
-                      onFile={(file) => {
-                        // TODO: subirImagenGlobal(file)
-                      }}
-                      text="Sube una imagen para todos"
-                      subtext="PNG, JPG…"
-                      className="w-full"
-                    />
-                  </div>
+                <div className="flex items-center gap-2 cursor-pointer">
+                  <ImageUploadBox
+                    onFile={(file) => {
+                      // TODO: subirImagenGlobal(file)
+                    }}
+                    text="Sube una imagen para todos"
+                    subtext="PNG, JPG…"
+                    className="w-full"
+                  />
+                </div>
               )}
             </div>
-            {/* Lista de equipos creados + Ver QR */}
+
+            {/* Input global oculto para subir imagen individual */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePick}
+            />
+
+            {/* Lista de equipos creados + acciones */}
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Equipos creados</h4>
               <div className="grid gap-3 max-h-[260px] overflow-y-auto pr-1">
@@ -254,39 +247,43 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
                   </p>
                 ) : (
                   createdList.map((eq) => {
+                    const qrUrl = getPrimaryQrUrl(eq)
                     return (
                       <div
                         key={eq.id}
                         className="border rounded px-4 py-3 flex items-center gap-3"
                       >
-                        {/* Izquierda: info del equipo */}
+                        {/* Info izquierda */}
                         <div className="min-w-0 flex-1">
                           <p className="font-medium truncate">{eq.name}</p>
                           <p className="text-xs text-muted-foreground">Serial: {eq.serial}</p>
                         </div>
 
-                        {/* Derecha: acciones agrupadas */}
+                        {/* Acciones derecha */}
                         <div className="flex items-center gap-2 shrink-0">
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleViewQr(eq)}
+                            onClick={() => openViewerFor(eq)}
                             disabled={!getPrimaryQrUrl(eq)}
                             title={getPrimaryQrUrl(eq) ? 'Ver QR' : 'QR no disponible'}
-                            className="w-[112px] justify-center"    // ancho fijo para alinear
+                            className="w-[112px] justify-center"
                           >
                             <QrCode className="h-4 w-4 mr-1" />
                             Ver QR
                           </Button>
-
                           {individualUpload && (
-                            <UploadButton
-                              label="Subir imagen"
-                              onSelect={(file) => {
-                                // TODO: subirImagenIndividual(eq.id, file)
-                              }}
-                              className="w-[130px] justify-center"   // mismo alto, ancho consistente
-                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => triggerPick(eq.id)}
+                              isLoading={!!uploadingById[eq.id]}
+                              className="w-[130px] justify-center"
+                              aria-label={`Subir imagen de ${eq.name}`}
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Subir imagen
+                            </Button>
                           )}
                         </div>
                       </div>
@@ -295,11 +292,17 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
                 )}
               </div>
             </div>
-
-            {/* Subida de imagen (general / individual) */}
           </div>
         )}
       </motion.div>
+
+      <ImageViewer
+        items={qrItems}
+        index={viewerIndex}
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+        onIndexChange={setViewerIndex}
+      />
 
       <DialogFooter className="flex justify-end gap-2">
         <Button variant="outline" onClick={onCancel}>
@@ -307,11 +310,7 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
           Cancelar
         </Button>
         {step === 1 ? (
-          <Button
-            onClick={handleSubmit}
-            disabled={!name.trim() || !description.trim()}
-            isLoading={isLoading}
-          >
+          <Button onClick={handleSubmit} disabled={!name.trim() || !description.trim()} isLoading={isLoading}>
             Siguiente
             <ArrowRight className="ml-2" />
           </Button>
