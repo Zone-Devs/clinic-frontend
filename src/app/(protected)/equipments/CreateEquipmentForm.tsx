@@ -11,7 +11,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Counter } from '@/app/components/Counter'
-import { ArrowRight, Upload, X, QrCode } from 'lucide-react'
+import { ArrowRight, Upload, X, QrCode, CheckCircle2 } from 'lucide-react'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { ImageUploadBox } from '@/app/components/ImageUploadBox'
@@ -54,6 +54,13 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [targetId, setTargetId] = useState<string | null>(null)
   const [uploadingById, setUploadingById] = useState<Record<string, boolean>>({})
+  const [uploadedById, setUploadedById] = useState<Record<string, boolean>>({}) // ✅ nuevo: éxito por equipo
+
+  const isAnyUploadingIndividual = React.useMemo(
+    () => Object.values(uploadingById).some(Boolean),
+    [uploadingById]
+  )
+
   // dentro del componente
   const [viewerOpen, setViewerOpen] = useState(false)
   const [viewerIndex, setViewerIndex] = useState(0)
@@ -63,10 +70,9 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   const qrItems = React.useMemo(() => {
     return createdList.flatMap(eq =>
       (eq.qrs ?? []).map(q => ({
-        // usa el proxy para pasar el bearer
         src: `/api/proxy/qr?src=${encodeURIComponent(q.qrImageURL)}`,
         title: `${eq.name} • Serial: ${eq.serial}`,
-        __raw: q.qrImageURL, // para encontrar índice
+        __raw: q.qrImageURL,
       }))
     )
   }, [createdList])
@@ -80,22 +86,29 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   }
 
   const triggerPick = (id: string) => {
+    if (uploadingById[id]) return // evita abrir si está subiendo
     setTargetId(id)
     fileInputRef.current?.click()
   }
 
   const handlePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    e.currentTarget.value = '' // permite seleccionar el mismo archivo de nuevo
+    e.currentTarget.value = '' // permite reseleccionar el mismo archivo
     if (!file || !targetId) return
     try {
       setUploadingById((s) => ({ ...s, [targetId]: true }))
-      // TODO: subirImagenIndividual(targetId, file)
-      // const fd = new FormData()
-      // fd.append('image', file)
-      // await axiosClient.post(`/api/equipments/${targetId}/image`, fd, {
-      //   headers: { 'Content-Type': 'multipart/form-data' }
-      // })
+      setUploadedById((s) => ({ ...s, [targetId]: false }))
+      const fd = new FormData()
+      fd.append('file', file)
+      // mismo endpoint que el global, pero por equipo
+      await axiosClient.post(`/api/equipments/${targetId}/equipment/images`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      setUploadedById((s) => ({ ...s, [targetId!]: true }))
+      toast.success('Imagen subida correctamente.')
+    } catch {
+      toast.error('Error al subir la imagen.')
+      setUploadedById((s) => ({ ...s, [targetId!]: false }))
     } finally {
       setUploadingById((s) => ({ ...s, [targetId!]: false }))
       setTargetId(null)
@@ -103,15 +116,12 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   }
 
   const uploadGlobalImage = async (file: File) => {
-    console.log('🚬 ===> uploadGlobalImage ===> createdList:', createdList);
     if (!createdList.length) {
       toast.info('No hay equipos para actualizar.')
       return
     }
-
     setIsUploadingAll(true)
     try {
-      // misma imagen para todos los equipos creados
       const requests = createdList.map((eq) => {
         const fd = new FormData()
         fd.append('file', file)
@@ -119,14 +129,19 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
           headers: { 'Content-Type': 'multipart/form-data' }
         })
       })
-
       const results = await Promise.allSettled(requests)
       const ok = results.filter(r => r.status === 'fulfilled').length
       const fail = results.length - ok
-
       if (ok)  toast.success(`Imagen subida a ${ok} equipo${ok > 1 ? 's' : ''}.`)
       if (fail) toast.error(`${fail} subida${fail > 1 ? 's' : ''} fallida${fail > 1 ? 's' : ''}.`)
-    } catch (e) {
+      // marca como subidos los que tuvieron éxito
+      results.forEach((r, i) => {
+        const id = createdList[i].id
+        if (r.status === 'fulfilled') {
+          setUploadedById((s) => ({ ...s, [id]: true }))
+        }
+      })
+    } catch {
       toast.error('Error al subir la imagen.')
     } finally {
       setIsUploadingAll(false)
@@ -235,6 +250,7 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
         ) : (
           <div className="space-y-5">
             <div className="space-y-3">
+              {createdList.length > 1 && 
               <RadioGroup
                 value={individualUpload ? 'individual' : 'single'}
                 onValueChange={(v) => setIndividualUpload(v === 'individual')}
@@ -249,6 +265,8 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
                   <Label htmlFor="mode-individual" className="text-sm cursor-pointer w-full h-full">Subir imagen individual</Label>
                 </div>
               </RadioGroup>
+              }
+
               {!individualUpload && (
                 <div className="flex items-center gap-2 cursor-pointer">
                   <ImageUploadBox
@@ -259,7 +277,6 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
                   />
                 </div>
               )}
-
             </div>
 
             {/* Input global oculto para subir imagen individual */}
@@ -282,6 +299,8 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
                 ) : (
                   createdList.map((eq) => {
                     const qrUrl = getPrimaryQrUrl(eq)
+                    const isLoadingItem = !!uploadingById[eq.id]
+                    const isUploadedItem = !!uploadedById[eq.id]
                     return (
                       <div
                         key={eq.id}
@@ -299,24 +318,35 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
                             variant="outline"
                             size="sm"
                             onClick={() => openViewerFor(eq)}
-                            disabled={!getPrimaryQrUrl(eq)}
-                            title={getPrimaryQrUrl(eq) ? 'Ver QR' : 'QR no disponible'}
+                            disabled={!qrUrl}
+                            title={qrUrl ? 'Ver QR' : 'QR no disponible'}
                             className="w-[112px] justify-center"
                           >
                             <QrCode className="h-4 w-4 mr-1" />
                             Ver QR
                           </Button>
+
                           {individualUpload && (
                             <Button
                               size="sm"
-                              variant="outline"
+                              variant={isUploadedItem ? 'default' : 'outline'}
                               onClick={() => triggerPick(eq.id)}
-                              isLoading={!!uploadingById[eq.id]}
-                              className="w-[130px] justify-center"
+                              isLoading={isLoadingItem}
+                              className="w-[150px] justify-center"
                               aria-label={`Subir imagen de ${eq.name}`}
+                              title={isUploadedItem ? 'Imagen subida' : 'Subir imagen'}
                             >
-                              <Upload className="h-4 w-4 mr-2" />
-                              Subir imagen
+                              {isUploadedItem ? (
+                                <>
+                                  <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-600" />
+                                  Completado
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="h-4 w-4 mr-2" />
+                                  Subir imagen
+                                </>
+                              )}
                             </Button>
                           )}
                         </div>
@@ -349,7 +379,7 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
             <ArrowRight className="ml-2" />
           </Button>
         ) : (
-          <Button onClick={onCancel} disabled={isUploadingAll}>
+          <Button onClick={onCancel} disabled={isUploadingAll || isAnyUploadingIndividual}>
             <Upload className="mr-2" />
             Finalizar
           </Button>

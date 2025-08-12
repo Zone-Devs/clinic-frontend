@@ -237,7 +237,10 @@ export function EquipmentManager({ initial }: EquipmentManagerProps) {
         >
           <CreateEquipmentForm
             onConfirm={handleCreate}
-            onCancel={() => setCreating(false)}
+            onCancel={async () => {
+              setCreating(false)
+              await loadEquipments()
+            }}
             isLoading={isCreating}
           />
         </DialogContent>
