@@ -70,7 +70,7 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   const qrItems = React.useMemo(() => {
     return createdList.flatMap(eq =>
       (eq.qrs ?? []).map(q => ({
-        src: `/api/proxy/qr?src=${encodeURIComponent(q.qrImageURL)}`,
+        src: `/api/proxy/files?src=${encodeURIComponent(q.qrImageURL)}`,
         title: `${eq.name} • Serial: ${eq.serial}`,
         __raw: q.qrImageURL,
       }))
@@ -168,12 +168,6 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   }
 
   const getPrimaryQrUrl = (e: Equipment) => e.qrs?.[0]?.qrImageURL
-  const handleViewQr = (e: Equipment) => {
-    const url = getPrimaryQrUrl(e)
-    if (!url) return
-    const proxy = `/api/proxy/qr?src=${encodeURIComponent(url)}`
-    window.open(proxy, '_blank', 'noopener,noreferrer')
-  }
 
   return (
     <>

@@ -249,7 +249,11 @@ export function EquipmentManager({ initial }: EquipmentManagerProps) {
       {/* ——— Editar Equipo ——— */}
       {editing && (
         <Dialog open={!!editing} onOpenChange={() => setEditing(null)}>
-          <DialogContent>
+          <DialogContent
+            className='min-w-[45%]'
+            onEscapeKeyDown={(e) => e.preventDefault()}
+            onPointerDownOutside={(e) => e.preventDefault()}
+          >
             <EditEquipmentForm
               equipment={editing}
               onConfirm={data => handleEdit(editing.id, data)}
