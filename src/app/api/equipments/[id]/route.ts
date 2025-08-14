@@ -45,7 +45,7 @@ export async function DELETE(
       { status: backendRes.status }
     )
   } catch (err) {
-    console.error('Error proxy DELETE /api/categories/[id]:', err)
+    console.error('Error proxy DELETE /api/equipments/[id]:', err)
     return NextResponse.json(
       { message: serverErrorMsg },
       { status: 500 }
@@ -63,10 +63,11 @@ export async function PATCH(
   }
 
   const { id: categoryID } = await params
-  let body: { name: string; description: string; }
-
+  let body: { name: string; description: string; model: string }
+  
   try {
     body = await req.json()
+    console.log('🚬 ===> :67 ===> PATCH ===> body:', body);
   } catch {
     return NextResponse.json(
       { message: 'Payload inválido' },
@@ -76,7 +77,7 @@ export async function PATCH(
 
   try {
     const backendRes = await fetch(
-      `${BACKEND_URL}/api/equipment-category/${encodeURIComponent(categoryID)}`,
+      `${BACKEND_URL}/api/equipments/${encodeURIComponent(categoryID)}`,
       {
         method: 'PATCH',
         headers: {
@@ -105,7 +106,7 @@ export async function PATCH(
     }
     return NextResponse.json({ message: msg }, { status: backendRes.status })
   } catch (err) {
-    console.error('Error proxy PATCH /api/categories/[id]:', err)
+    console.error('Error proxy PATCH /api/equipments/[id]:', err)
     return NextResponse.json({ message: serverErrorMsg }, { status: 500 })
   }
 }
@@ -162,7 +163,7 @@ export async function POST(
     }
     return NextResponse.json({ message: msg }, { status: backendRes.status })
   } catch (err) {
-    console.error('Error proxy PATCH /api/categories/[id]:', err)
+    console.error('Error proxy PATCH /api/equipments/[id]:', err)
     return NextResponse.json({ message: serverErrorMsg }, { status: 500 })
   }
 }

@@ -115,6 +115,7 @@ export function EquipmentManager({ initial }: EquipmentManagerProps) {
     setIsUpdating(true)
     try {
       const resp = await axiosClient.patch<InitialEquipmentProps>(`api/equipments/${id}`, payload)
+      console.log('🚬 ===> :118 ===> handleEdit ===> resp:', resp);
       const updatedEquipment = resp.data
       setEquipments(prev =>
         prev.map(c => (c.id === id ? updatedEquipment : c))

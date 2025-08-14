@@ -10,12 +10,14 @@ import {
 } from "@/components/ui/dialog";
 import { InitialEquipmentProps } from "./EquipmentTable";
 import Image from "next/image";
-import { Save, X, Upload, ImageIcon, QrCode, Loader2, ImageUp, RefreshCw, RotateCw } from "lucide-react";
+import { Save, X, ImageIcon, QrCode, Loader2, ImageUp, RefreshCw, RotateCw } from "lucide-react";
 import { ImageViewer } from "@/app/components/ImageViewer";
+import axiosClient from '@/utils/axiosClient'
+import { motion, AnimatePresence  } from 'framer-motion'
 
 interface Props {
   equipment: InitialEquipmentProps;
-  onConfirm: (data: { name: string; description: string }) => void;
+  onConfirm: (data: { name: string; description: string; model: string }) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
@@ -35,6 +37,8 @@ export const EditEquipmentForm = React.memo(function EditEquipmentForm({
   const [imgError, setImgError] = useState(false);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrError, setQrError] = useState(false);
+  const [isUploadingImg, setIsUploadingImg] = useState(false)
+  const [uploadErr, setUploadErr] = useState<null | string>(null)
 
   // preview local si el usuario elige "Cambiar imagen"
   const [preview, setPreview] = useState<string | null>(null);
@@ -66,7 +70,7 @@ export const EditEquipmentForm = React.memo(function EditEquipmentForm({
   }, []);
 
   const pickImage = () => fileInputRef.current?.click();
-  const onPickImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onPickImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.currentTarget.value = ""; // permite reseleccionar el mismo archivo
     if (!file) return;
@@ -77,6 +81,7 @@ export const EditEquipmentForm = React.memo(function EditEquipmentForm({
     });
     setImgError(false);
     setImgLoading(true);
+    await uploadImage(file)
   };
 
   // fuentes
@@ -124,6 +129,25 @@ export const EditEquipmentForm = React.memo(function EditEquipmentForm({
     setViewerIndex(which === "img" ? 0 : hasImg ? 1 : 0);
     setViewerOpen(true);
   };
+
+  const uploadImage = async (file: File) => {
+    try {
+      setIsUploadingImg(true)
+      setUploadErr(null)
+      const fd = new FormData()
+      fd.append('file', file)
+      await axiosClient.post(`/api/equipments/${(equipment as any).id}/equipment/images`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      // dejamos la preview (blob) visible para que el usuario vea la nueva imagen inmediatamente.
+      // si prefieres cambiar a la URL del servidor, quita la preview aquí:
+      // setPreview(null); setImgLoading(true);
+    } catch (e: any) {
+      setUploadErr('Error al subir la imagen')
+    } finally {
+      setIsUploadingImg(false)
+    }
+  }
 
   return (
     <>
@@ -218,12 +242,48 @@ export const EditEquipmentForm = React.memo(function EditEquipmentForm({
                 </div>
               )}
             </div>
-
+            {/* Boton Actualizar */}
             <div className="mt-2">
-              <Button variant="outline" onClick={pickImage} className="w-full">
-                <RefreshCw className="h-1 w-1" />
-                Actualizar
+              <Button
+                variant="outline"
+                onClick={pickImage}
+                className="w-full"
+                disabled={isUploadingImg}
+                title={uploadErr ?? 'Actualizar imagen'}
+              >
+                {isUploadingImg ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                {isUploadingImg ? 'Cargando' : 'Actualizar'}
               </Button>
+
+              {/* Barra indeterminada (aparece/desaparece suave) */}
+              <AnimatePresence>
+                {isUploadingImg && (
+                  <motion.div
+                    key="indeterminate-bar"
+                    className="relative mt-2 w-full overflow-hidden rounded bg-muted"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: '0.25rem' }}   // h-1 = 0.25rem
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ opacity: { duration: 0.01 }, height: { duration: 0.01 } }}
+                  >
+                    <motion.div
+                      className="absolute inset-y-0 left-0 w-1/3 bg-primary/80"
+                      initial={{ x: '-100%' }}
+                      animate={{ x: '100%' }}
+                      transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+                      style={{ willChange: 'transform' }}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {uploadErr && (
+                <p className="mt-1 text-xs text-red-500">{uploadErr}</p>
+              )}
             </div>
 
             <input
@@ -308,6 +368,7 @@ export const EditEquipmentForm = React.memo(function EditEquipmentForm({
             onConfirm({
               name: name.trim(),
               description: description.trim(),
+              model: model.trim()
             })
           }
           isLoading={isLoading}

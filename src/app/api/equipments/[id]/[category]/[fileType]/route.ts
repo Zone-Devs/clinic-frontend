@@ -9,7 +9,7 @@ export async function POST(
   { params }: { params: { id: string; category: string; fileType: string } }
 ) {
   try {
-    const { id, category, fileType } = params
+    const { id, category, fileType } = await params
     const form = await req.formData()
     const file = form.get('file') as File | null
     if (!file) {
