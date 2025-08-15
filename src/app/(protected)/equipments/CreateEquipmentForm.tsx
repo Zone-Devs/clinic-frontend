@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import Stepper from 'react-stepper-horizontal'
 import { Button } from '@/components/ui/button'
 import {
@@ -10,14 +10,29 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog'
 import { Counter } from '@/app/components/Counter'
-import { ArrowRight, Upload, X, QrCode, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, Upload, X, QrCode, Maximize2, Trash2, Repeat, CornerDownLeft, LogOut, Check } from 'lucide-react'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { ImageUploadBox } from '@/app/components/ImageUploadBox'
 import { ImageViewer } from '@/app/components/ImageViewer'
+import type { QrItem } from '@/app/components/ImageViewer'
 import axiosClient from '@/utils/axiosClient'
 import { toast } from 'react-toastify'
+import * as z from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { FormField } from '@/app/components/forms/FormField'
 import clsx from 'clsx'
 
 export interface Equipment {
@@ -30,22 +45,41 @@ export interface Qr {
   createdAt: Date; updatedAt: Date; createdLocalTime: Date; updatedLocalTime: Date;
 }
 
+const stageSchema = z.object({
+  name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres').max(255, 'Máximo 255 caracteres'),
+  model: z.string().min(3, 'El modelo debe tener al menos 3 caracteres').max(255, 'Máximo 255 caracteres'),
+  description: z.string().min(3, 'La descripción debe tener al menos 3 caracteres').max(255, 'Máximo 255 caracteres'),
+})
+
+type FormValues = z.infer<typeof stageSchema>
+
 interface Props {
+  initial: FormValues
   onConfirm: (payload: { name: string; description: string; model: string; quantity: number }) => Promise<Equipment[]>
   onCancel: () => void
   isLoading?: boolean
 }
 
+const baseInput = 'mt-1 block w-full rounded border px-3 py-2'
+
 export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
+  initial,
   onConfirm,
   onCancel,
   isLoading = false,
 }: Props) {
+  /* BEGIN: consts and states */
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    reset,
+  } = useForm<FormValues>({
+    resolver: zodResolver(stageSchema),
+    mode: 'onChange',
+    defaultValues: initial, // <- viene por props
+  })
   const [step, setStep] = useState<1 | 2>(1)
-
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [model, setModel] = useState('')
   const [quantity, setQuantity] = useState(1)
 
   const [individualUpload, setIndividualUpload] = useState(false)
@@ -64,12 +98,10 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   // Confirmation for radiobutton
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [pendingMode, setPendingMode] = useState<'individual' | 'single' | null>(null)
-
   const isAnyUploadingIndividual = React.useMemo(
     () => Object.values(uploadingById).some(Boolean),
     [uploadingById]
   )
-
   // dentro del componente
   const [viewerOpen, setViewerOpen] = useState(false)
   const [viewerIndex, setViewerIndex] = useState(0)
@@ -78,7 +110,24 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   const [thumbById, setThumbById] = useState<Record<string, string | null>>({})
   // 1) Ref para tener siempre la versión actual de thumbById
   const thumbByIdRef = useRef<Record<string, string | null>>({})
+  const [viewerItems, setViewerItems] = useState<QrItem[]>([])
+  const proxy = (u: string) => `/api/proxy/files?src=${encodeURIComponent(u)}`
+  const [missingDlgOpen, setMissingDlgOpen] = useState(false)
+  const [missingDlgText, setMissingDlgText] = useState<{ title: string; description: string }>({
+    title: '',
+    description: '',
+  })
+  const [unsavedDlgOpen, setUnsavedDlgOpen] = useState(false)
+  const [unsavedDlgText, setUnsavedDlgText] = useState<{ title: string; description: string }>({
+    title: '',
+    description: '',
+  })
+  const missingDlgResolveRef = useRef<(value: boolean) => void | null>(null)
+  const unsavedDlgResolveRef = useRef<((value: boolean) => void) | null>(null)
+  const proceedRef = useRef(false)
+  /* END: consts and states */
 
+  /* Handlers */
   const confirmCancel = () => {
     setConfirmOpen(false)
     setPendingMode(null)
@@ -86,7 +135,7 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
 
   const confirmProceed = () => {
     if (!pendingMode) return
-    clearPending() // ← tu helper para limpiar pendientes y revocar blobs
+    clearPending()
     setIndividualUpload(pendingMode === 'individual')
     setConfirmOpen(false)
     setPendingMode(null)
@@ -100,7 +149,6 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
   const clearPending = React.useCallback(() => {
     setPendingGlobalFile(null)
     setPendingFileById({})
-    // limpia thumbs (y revoca blobs)
     setThumbById(prev => {
       Object.values(prev).forEach((u) => {
         if (typeof u === 'string' && u.startsWith('blob:')) URL.revokeObjectURL(u)
@@ -121,37 +169,14 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
     setIndividualUpload(nextIndividual)
   }
 
-  useEffect(() => {
-    thumbByIdRef.current = thumbById
-  }, [thumbById])
-
-  useEffect(() => {
-    return () => {
-      Object.values(thumbByIdRef.current).forEach((url) => {
-        if (typeof url === 'string' && url.startsWith('blob:')) {
-          URL.revokeObjectURL(url)
-        }
-      })
-    }
-  }, [])
-
-  const qrItems = React.useMemo(() => {
+    const qrItems = React.useMemo<QrItem[]>(() => {
     return createdList.flatMap(eq =>
       (eq.qrs ?? []).map(q => ({
-        src: `/api/proxy/files?src=${encodeURIComponent(q.qrImageURL)}`,
+        src: proxy(q.qrImageURL),
         title: `${eq.name} • Serial: ${eq.serial}`,
-        __raw: q.qrImageURL,
       }))
     )
   }, [createdList])
-
-  const openViewerFor = (eq: Equipment) => {
-    const first = eq.qrs?.[0]?.qrImageURL
-    if (!first) return
-    const idx = qrItems.findIndex(i => i.__raw === first)
-    setViewerIndex(idx >= 0 ? idx : 0)
-    setViewerOpen(true)
-  }
 
   const triggerPick = (id: string) => {
     if (uploadingById[id]) return
@@ -196,7 +221,6 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
     setPendingFileById(prev => ({ ...prev, [targetId]: file }))
     setUploadedById(prev => ({ ...prev, [targetId]: false })) // aún no subido
     toast.info('Imagen seleccionada. Se subirá al finalizar.')
-    // NO subimos nada aquí
     setTargetId(null)
   }
 
@@ -212,8 +236,23 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
     )
   }
 
-  const finalizeUploads = async () => {
-    try {
+    const finalizeUploads = async () => {
+      if (!individualUpload) {
+        // Global: no hay imagen seleccionada
+        if (!pendingGlobalFile) {
+          const ok = await confirmMissingImagesDialog()
+          if (!ok) return
+        }
+      } else {
+        // Individual: faltan imágenes por seleccionar
+        const total = createdList.length
+        const selected = Object.values(pendingFileById).filter(Boolean).length
+        if (selected < total) {
+          const ok = await confirmMissingImagesDialog()
+          if (!ok) return
+        }
+      }
+      try {
       setIsFinishing(true)
 
       if (individualUpload) {
@@ -221,7 +260,6 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
         const entries = Object.entries(pendingFileById).filter(([, f]) => !!f) as [string, File][]
 
         if (entries.length === 0) {
-          // nada que subir: simplemente cerrar
           onCancel()
           return
         }
@@ -311,13 +349,12 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
     }
   }
 
-
-  const handleSubmit = async () => {
+  const onSubmitStep1 = handleSubmit(async (values) => {
     try {
       const created = await onConfirm({
-        name: name.trim(),
-        description: description.trim(),
-        model: model.trim(),
+        name: values.name.trim(),
+        description: values.description.trim(),
+        model: values.model.trim(),
         quantity,
       })
       if (Array.isArray(created) && created.length > 0) {
@@ -327,9 +364,132 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
     } catch (err) {
       console.error('Error al crear equipo:', err)
     }
-  }
+  })
 
   const getPrimaryQrUrl = (e: Equipment) => e.qrs?.[0]?.qrImageURL
+
+  // Abre el viewer con la miniatura pendiente (blob) del equipo
+  const openViewerForThumb = (id: string) => {
+    const t = thumbById[id]
+    if (!t) return
+    const src = t.startsWith('blob:') ? t : proxy(t)
+    setViewerItems([{ src, title: 'Imagen pendiente' }])
+    setViewerIndex(0)
+    setViewerOpen(true)
+  }
+
+  // ver QR del equipo
+  const openViewerForQr = (eq: Equipment) => {
+    const first = eq.qrs?.[0]?.qrImageURL
+    const items = qrItems
+    if (!items.length || !first) return
+    const firstSrc = proxy(first)
+    const idx = Math.max(0, items.findIndex(i => i.src === firstSrc))
+    setViewerItems(items)
+    setViewerIndex(idx)
+    setViewerOpen(true)
+  }
+
+  // Elimina la imagen pendiente en memoria para un equipo
+  const removePendingFor = (id: string) => {
+    setPendingFileById(prev => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+    setThumbById(prev => {
+      const url = prev[id]
+      if (url?.startsWith('blob:')) URL.revokeObjectURL(url)
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+    setUploadedById(s => ({ ...s, [id]: false }))
+  }
+
+  // Toast de confirmación para imágenes faltantes en paso 2
+  const confirmMissingImagesDialog = () =>
+    new Promise<boolean>((resolve) => {
+      const total = createdList.length
+      const selected = Object.values(pendingFileById).filter(Boolean).length
+      const missing = Math.max(0, total - selected)
+      const isGlobal = !individualUpload
+
+      setMissingDlgText({
+        title: isGlobal
+          ? 'No seleccionaste una imagen global'
+          : `Faltan ${missing} de ${total} imágenes por seleccionar`,
+        description: isGlobal
+          ? 'Si continúas sin imagen global, no se subirá ninguna imagen. ¿Deseas Salir?'
+          : 'Si continúas, solo se subirán las imágenes seleccionadas. ¿Deseas continuar?',
+      })
+
+      missingDlgResolveRef.current = resolve
+      setMissingDlgOpen(true)
+    })
+
+  const confirmUnsavedImagesDialog = () =>
+    new Promise<boolean>((resolve) => {
+      const isGlobal = !individualUpload
+      const total = createdList.length
+      const selected = isGlobal
+        ? (pendingGlobalFile ? 1 : 0)
+        : Object.values(pendingFileById).filter(Boolean).length
+
+      setUnsavedDlgText({
+        title: 'Hay cambios sin guardar',
+        description: isGlobal
+          ? 'Seleccionaste una imagen global que aún no se subió. Si sales ahora, se perderá.'
+          : `Seleccionaste ${selected} imagen${selected === 1 ? '' : 'es'} de ${total}. Si sales ahora, se perderán.`,
+      })
+      unsavedDlgResolveRef.current = resolve
+      setUnsavedDlgOpen(true)
+    })
+
+  const handleCancelClick = async () => {
+    if (step !== 2) { onCancel(); return }
+
+    const isGlobal = !individualUpload
+    const hasUnsaved = isGlobal
+      ? !!pendingGlobalFile
+      : Object.values(pendingFileById).some(Boolean)
+
+    // 1) Si hay imágenes seleccionadas en memoria, preguntar por pérdida de cambios
+    if (hasUnsaved) {
+      const ok = await confirmUnsavedImagesDialog()
+      if (!ok) return
+      onCancel()
+      return
+    }
+
+    // 2) Si NO hay imágenes (global) o faltan (individual), usa tu diálogo existente de "faltan imágenes"
+    const total = createdList.length
+    const selected = Object.values(pendingFileById).filter(Boolean).length
+    const needsMissingConfirm = isGlobal ? !pendingGlobalFile : selected < total
+
+    if (needsMissingConfirm) {
+      const ok = await confirmMissingImagesDialog() // <-- el que ya creaste
+      if (!ok) return
+    }
+
+    onCancel()
+  }
+
+  useEffect(() => { reset(initial) }, [initial, reset])
+
+  useEffect(() => {
+    thumbByIdRef.current = thumbById
+  }, [thumbById])
+
+  useEffect(() => {
+    return () => {
+      Object.values(thumbByIdRef.current).forEach((url) => {
+        if (typeof url === 'string' && url.startsWith('blob:')) {
+          URL.revokeObjectURL(url)
+        }
+      })
+    }
+  }, [])
 
   return (
     <>
@@ -362,42 +522,36 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
         className="py-2"
       >
         {step === 1 ? (
-          <div className="grid gap-4">
-            <label>
-              <span className="text-sm font-medium">Nombre</span>
+          <div className="space-y-4">
+            <FormField label="Nombre" error={errors.name?.message}>
               <input
+                {...register('name')}
                 type="text"
-                required
-                className="mt-1 block w-full rounded border px-3 py-2"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                className={`${baseInput} ${errors.name ? 'border-red-500' : ''}`}
                 placeholder="Ej. Bisturí"
+                aria-invalid={!!errors.name}
               />
-            </label>
+            </FormField>
 
-            <label>
-              <span className="text-sm font-medium">Modelo / Nº de serie</span>
+            <FormField label="Modelo / Nº de serie" error={errors.model?.message}>
               <input
+                {...register('model')}
                 type="text"
-                required
-                className="mt-1 block w-full rounded border px-3 py-2"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
+                className={`${baseInput} ${errors.model ? 'border-red-500' : ''}`}
                 placeholder="Escribe el modelo de tu equipo"
+                aria-invalid={!!errors.model}
               />
-            </label>
+            </FormField>
 
-            <label>
-              <span className="text-sm font-medium">Descripción</span>
+            <FormField label="Descripción" error={errors.description?.message}>
               <textarea
-                required
-                className="mt-1 block w-full rounded border px-3 py-2"
+                {...register('description')}
                 rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                className={`${baseInput} ${errors.description ? 'border-red-500' : ''}`}
                 placeholder="Una breve descripción de tu equipo"
+                aria-invalid={!!errors.description}
               />
-            </label>
+            </FormField>
 
             <div className="flex justify-start">
               <Counter value={quantity} onChange={setQuantity} min={1} max={10} />
@@ -455,7 +609,6 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
                   </p>
                 ) : (
                   createdList.map((eq) => {
-                    const qrUrl = getPrimaryQrUrl(eq)
                     const isLoadingItem = !!uploadingById[eq.id]
                     const isUploadedItem = !!uploadedById[eq.id]
                     return (
@@ -474,9 +627,9 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => openViewerFor(eq)}
-                            disabled={!qrUrl}
-                            title={qrUrl ? 'Ver QR' : 'QR no disponible'}
+                            onClick={() => openViewerForQr(eq)}
+                            disabled={!getPrimaryQrUrl(eq)}
+                            title={getPrimaryQrUrl(eq) ? 'Ver QR' : 'QR no disponible'}
                             className="w-[112px] justify-center"
                           >
                             <QrCode className="h-4 w-4 mr-1" />
@@ -487,60 +640,54 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
                             <div className="flex items-center gap-2">
                               <Button
                                 size="sm"
-                                variant={isUploadedItem ? 'default' : 'outline'}
+                                variant={thumbById[eq.id] ? 'outline' : 'default'}
                                 onClick={() => triggerPick(eq.id)}
                                 isLoading={isLoadingItem}
+                                disabled={isLoadingItem}
+                                title={!thumbById[eq.id] ? 'Subir nueva imagen' : 'Reemplazar imagen'}
                                 className={clsx(
-                                  'w-[150px] justify-center',
-                                  isUploadedItem && 'border-emerald-500/60 bg-emerald-50 text-emerald-700 hover:bg-emerald-50'
+                                  'justify-center',
+                                  !thumbById[eq.id] && 'w-[140px]'
                                 )}
                                 aria-label={`Subir imagen de ${eq.name}`}
-                                title={
-                                  thumbById[eq.id] && !isUploadedItem
-                                    ? 'Imagen pendiente (se subirá al finalizar)'
-                                    : isUploadedItem
-                                    ? 'Imagen subida'
-                                    : 'Subir imagen'
-                                }
                               >
-                                {isUploadedItem ? (
-                                  <>
-                                    {(() => {
-                                      const t = thumbById[eq.id] || (eq as any).imageURL || null
-                                      const thumb = t
-                                        ? (t.startsWith('blob:') ? t : `/api/proxy/files?src=${encodeURIComponent(t)}`)
-                                        : null
-                                      return thumb ? (
-                                        <span className="mr-2 inline-flex h-4 w-4 overflow-hidden rounded-[3px] border">
-                                          <img src={thumb} alt="" className="h-full w-full object-cover" />
-                                        </span>
-                                      ) : (
-                                        <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-600" />
-                                      )
-                                    })()}
-                                    <span className="truncate">Completado</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Upload className="h-4 w-4 mr-2" />
-                                    {thumbById[eq.id] ? 'Cambiar imagen' : 'Subir imagen'}
-                                  </>
-                                )}
+                                {!isLoadingItem && (thumbById[eq.id] ? <Repeat className="h-4 w-4" /> : <Upload className="h-4 w-4 mr-2" />)}
+                                {!thumbById[eq.id] && 'Subir imagen'}
                               </Button>
-
-                              {/* Mini-preview de archivo EN MEMORIA (pendiente de subir) */}
+                              {/* Miniatura pendiente con acciones (ver grande / eliminar a la derecha) */}
                               {thumbById[eq.id] && !isUploadedItem && (
-                                <span className="inline-flex h-10 w-10 rounded border overflow-hidden">
-                                  <img
-                                    src={thumbById[eq.id] as string}
-                                    alt=""
-                                    className="h-full w-full object-cover"
-                                    aria-hidden="true"
-                                  />
-                                </span>
+                                <div className="inline-flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => openViewerForThumb(eq.id)}
+                                    className="group relative h-10 w-10 rounded border overflow-hidden shrink-0 cursor-pointer"
+                                    title="Ver imagen pendiente"
+                                  >
+                                    <img
+                                      src={thumbById[eq.id] as string}
+                                      alt=""
+                                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                                    />
+                                    {/* Icono de ampliar al hover */}
+                                    <span className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-gray-900/40 transition-opacity">
+                                      <Maximize2 className="h-4 w-4 text-white drop-shadow" />
+                                    </span>
+                                  </button>
+
+                                  {/* Botón eliminar a la derecha */}
+                                  <button
+                                    type="button"
+                                    onClick={() => removePendingFor(eq.id)}
+                                    className="h-8 w-8 rounded-md border flex items-center justify-center hover:bg-red-50 cursor-pointer"
+                                    title="Remover"
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                  </button>
+                                </div>
                               )}
                             </div>
                           )}
+
                         </div>
                       </div>
                     )
@@ -553,64 +700,146 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
       </motion.div>
 
       <ImageViewer
-        items={qrItems}
+        items={viewerItems}
         index={viewerIndex}
         open={viewerOpen}
         onOpenChange={setViewerOpen}
         onIndexChange={setViewerIndex}
       />
+      {/* Dialog change radiobutton with changes */}
+      <AlertDialog
+        open={confirmOpen}
+        onOpenChange={(open) => {
+          if (!open && confirmOpen) {
+            if (proceedRef.current) {
+              proceedRef.current = false
+            } else {
+              confirmCancel()
+            }
+          }
+          setConfirmOpen?.(open)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{"¿Cambiar modo de subida?"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tienes imágenes sin guardar. Si cambias de opción se perderán.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-      <AnimatePresence>
-        {confirmOpen && (
-          <motion.div
-            key="mode-confirm"
-            className="fixed inset-0 z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="absolute inset-0 bg-black/30" onClick={confirmCancel} />
-            <div className="absolute inset-0 grid place-items-center p-4">
-              <motion.div
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="mode-confirm-title"
-                className="w-full max-w-sm rounded-lg bg-white p-4 shadow-xl"
-                initial={{ scale: 0.95, opacity: 0, y: 8 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.98, opacity: 0, y: 8 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-              >
-                <h3 id="mode-confirm-title" className="text-base font-semibold">
-                  ¿Cambiar modo de subida?
-                </h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Tienes imágenes sin guardar. Si cambias de opción se perderán.
-                </p>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={confirmCancel}>
+              <X />
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                proceedRef.current = true
+                confirmProceed()
+              }}
+            >
+              <Check />
+              Continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {/* Dialog confirmation on cancel */}
+      <AlertDialog
+        open={missingDlgOpen}
+          onOpenChange={(open) => {
+            if (!open && missingDlgOpen) {
+              missingDlgResolveRef.current?.(false)
+              missingDlgResolveRef.current = null
+            }
+            setMissingDlgOpen(open)
+          }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{missingDlgText.title}</AlertDialogTitle>
+            <AlertDialogDescription>{missingDlgText.description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setMissingDlgOpen(false)
+                missingDlgResolveRef.current?.(false)
+                missingDlgResolveRef.current = null
+              }}
+            >
+              <CornerDownLeft className='mr-2' />
+              Retroceder
+            </AlertDialogCancel>
 
-                <div className="mt-4 flex justify-end gap-2">
-                  <Button variant="outline" onClick={confirmCancel}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={confirmProceed}>
-                    Continuar
-                  </Button>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <AlertDialogAction
+              onClick={() => {
+                setMissingDlgOpen(false)
+                missingDlgResolveRef.current?.(true)
+                missingDlgResolveRef.current = null
+              }}
+            >
+              <LogOut/>
+              Continuar de todos modos
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {/* Dialod confirmation cancel with loaded images */}
+      <AlertDialog
+        open={unsavedDlgOpen}
+        onOpenChange={(open) => {
+          if (!open && unsavedDlgOpen) {
+            unsavedDlgResolveRef.current?.(false)
+            unsavedDlgResolveRef.current = null
+          }
+          setUnsavedDlgOpen(open)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{unsavedDlgText.title}</AlertDialogTitle>
+            <AlertDialogDescription>{unsavedDlgText.description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setUnsavedDlgOpen(false)
+                unsavedDlgResolveRef.current?.(false)
+                unsavedDlgResolveRef.current = null
+              }}
+            >
+              <CornerDownLeft className='mr-2' />
+              Retroceder
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setUnsavedDlgOpen(false)
+                unsavedDlgResolveRef.current?.(true)
+                unsavedDlgResolveRef.current = null
+              }}
+            >
+              <LogOut/>
+              Continuar de todos modos
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <DialogFooter className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel}>
+        <Button variant="outline" onClick={handleCancelClick}>
           <X className="mr-2" />
           Cancelar
         </Button>
         {step === 1 ? (
-          <Button onClick={handleSubmit} disabled={!name.trim() || !description.trim()} isLoading={isLoading}>
+          <Button
+            onClick={onSubmitStep1}
+            disabled={!isValid || isLoading}
+            isLoading={isLoading}
+          >
             Siguiente
-            <ArrowRight className="ml-2" />
+            {!isLoading && <ArrowRight className="ml-2" />}
           </Button>
         ) : (
           <Button
@@ -618,7 +847,7 @@ export const CreateEquipmentForm = React.memo(function CreateEquipmentForm({
             disabled={isFinishing || isUploadingAll || isAnyUploadingIndividual}
             isLoading={isFinishing || isUploadingAll || isAnyUploadingIndividual}
           >
-            <Upload className="mr-2" />
+            {!isFinishing && !isUploadingAll && !isAnyUploadingIndividual && <Upload className="mr-2" />}
             Finalizar
           </Button>
         )}

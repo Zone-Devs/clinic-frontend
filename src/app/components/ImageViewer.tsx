@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import React from 'react'
 import { DialogTitle } from '@radix-ui/react-dialog'
 
-type QrItem = { src: string; title: string }
+export type QrItem = { src: string; title: string }
 
 export function ImageViewer({
   items,
